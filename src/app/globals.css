@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf6;
+  --foreground: #1c261e;
+  --surface: #ffffff;
+  --surface-muted: #f3f1ea;
+  --border-subtle: #e5e2d6;
+  --border-strong: #c8c4b2;
+  --moss-primary: #2d5a37;
+  --moss-light: #e8f0e9;
+  --moss-dark: #1e3d25;
+  --bark-accent: #8b5a2b;
+  --lichen-amber: #c88a24;
+  --sun-gold: #e6a817;
+  --rock-gray: #4a554c;
+  --slate-dark: #121913;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-moss: var(--moss-primary);
+  --color-moss-light: var(--moss-light);
+  --color-moss-dark: var(--moss-dark);
+  --color-bark: var(--bark-accent);
+  --color-lichen: var(--lichen-amber);
+  --color-rock: var(--rock-gray);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid var(--moss-primary);
+  outline-offset: 2px;
+}
