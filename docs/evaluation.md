@@ -44,6 +44,8 @@ Five distinct outdoor observations representing diverse natural categories (deci
 - **Slowest Response:** Sample 01 (Oak Leaf) at 44.2s
 - **JSON Schema Conformance:** 100% (All parsed cleanly into strict Zod contracts)
 
+> **Scope of "PASS":** `PASS` means the request returned HTTP 200 and the model output parsed into the `aiAnalysisResultSchema` Zod contract. The samples have no ground-truth labels, so this evaluation demonstrates successful end-to-end inference and structured JSON behavior only. It does **not** measure recognition accuracy. The `Confidence` column is the label Gemma emitted as text; it is not a calibrated model probability. Raw recorded outputs are in `docs/evaluation_results.json`.
+
 ---
 
 ## 3. Deep-Dive Field Case Logs
@@ -138,29 +140,32 @@ Five distinct outdoor observations representing diverse natural categories (deci
 
 ## 6. Empirical Computer-Vision Segmentation & Ablation Study
 
-To evaluate whether a dedicated computer-vision spatial segmentation layer adds meaningful value to TrailLens, we benchmarked an isolated spatial segmentation pipeline against our 5 real outdoor test fixtures.
+To investigate whether a spatial pre-processing layer could add value to TrailLens, an isolated experimental module (`src/lib/vision/segmentation/`) was run against the 5 outdoor test fixtures.
+
+> **What this module is:** an experimental colour-heuristic spatial summary. It resizes the image to 128×128, assigns each pixel to one of five fixed RGB colour buckets, and reports one bounding box, centroid, and 3×3 grid position per bucket covering ≥4% of the frame. It is **not** learned semantic segmentation, instance segmentation, or object detection, and it does not perform connected-component labelling. Its per-region `confidence` value is derived from region area, not from a model.
 
 ### Pipeline Definitions
 
-- **Pipeline A (Baseline — Gemma Only):** Direct multimodal reasoning using Gemma 3 4B over loopback Ollama.
-- **Pipeline B (Segmentation Only):** Native spatial color-density clustering & connected-component extraction (`SpatialSegmentationEngine`).
-- **Pipeline C (Fused — Segmentation + Gemma):** Segmentation spatial scene summary injected into Gemma 3's prompt.
+- **Pipeline A (Baseline — Gemma Only):** Direct multimodal reasoning using Gemma 3 4B over loopback Ollama. **Executed** (Section 2).
+- **Pipeline B (Colour Heuristic Only):** Fixed-threshold RGB colour bucketing (`SpatialSegmentationEngine`). **Executed** locally without Gemma.
+- **Pipeline C (Fused — Heuristic Summary + Gemma):** Spatial summary injected into a Gemma 3 prompt via `buildSpatialFusionPrompt`. **Not executed.** No code path sends the fused prompt to Ollama, so no fused Gemma outputs or fused latencies exist.
 
-### Empirical Latency & Spatial Matrix
+### Latency Matrix
 
-| Sample ID | Subject | Pipeline A: Gemma Baseline | Pipeline B: Seg Latency | Pipeline C: Fused Total | Regions Detected | Primary Focal Placement |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `oak_leaf` | Oak Leaf | 44,245 ms | **18 ms** | 44,263 ms | 2 | `center` (foliage 44%) |
-| `tree_bark` | Pine Bark & Lichen | 41,769 ms | **15 ms** | 41,784 ms | 3 | `center-left` (bark 52%) |
-| `wildflower` | Dandelion Blossom | 37,420 ms | **17 ms** | 37,437 ms | 3 | `center` (blossom 14%) |
-| `river_stones` | River Pebbles | 29,975 ms | **16 ms** | 29,991 ms | 2 | `center` (mineral 68%) |
-| `pine_cone` | Fallen Pine Cone | 27,771 ms | **16 ms** | 27,787 ms | 3 | `center` (cone 38%) |
+| Sample ID | Subject | Pipeline A: Gemma Baseline (recorded) | Pipeline C: Fused Total |
+| :--- | :--- | :--- | :--- |
+| `oak_leaf` | Oak Leaf | 44,245 ms | Not executed |
+| `tree_bark` | Pine Bark & Lichen | 41,769 ms | Not executed |
+| `wildflower` | Dandelion Blossom | 37,420 ms | Not executed |
+| `river_stones` | River Pebbles | 29,975 ms | Not executed |
+| `pine_cone` | Fallen Pine Cone | 27,771 ms | Not executed |
 
-#### Ablation Averages
+> **Correction note:** An earlier version of this table listed a "Pipeline C: Fused Total" value for each sample. Those values were not measured; they were the arithmetic sum of the Pipeline A latency and the Pipeline B latency (A + B estimate) and have been removed. Earlier per-sample Pipeline B latency, region-count, and focal-placement figures were also removed: they were not persisted in the repository, and the region counts and placements (which are deterministic for a given image) do not match the output of the current `SpatialSegmentationEngine` implementation.
 
-- **Average Segmentation Overhead:** **16.4 ms** ($\approx 0.04\%$ of overall inference duration).
-- **Challenge Safety Validation:** 100% pass rate (All generated observational challenges verified non-toxic, non-invasive).
-- **Memory Overhead:** $< 25\text{ MB}$ RSS (processed via native streaming buffers).
+#### Pipeline B Observations
+
+- **Segmentation Latency:** Not recorded per sample. The unit test suite (`segmentation.test.ts`) only asserts upper bounds on the development machine: each sample < 100 ms and an average < 35 ms across the 5 fixtures.
+- **Challenge Safety Validation:** The benchmark (`runSegmentationBenchmark`) passes a single hard-coded, template-generated observational sentence through the keyword-based `validateChallengeSafety` check for each sample. It does **not** validate model-generated challenges, so it is not evidence of model output safety. Separately, unit tests confirm the validator rejects three hand-written unsafe examples (ingestion, mushroom handling, wildlife capture).
 
 ### Integration Gate Decision
 
@@ -169,5 +174,5 @@ To evaluate whether a dedicated computer-vision spatial segmentation layer adds 
 ##### Key Rationale
 
 1. **Multimodal Sufficiency:** Google Gemma 3 4B multimodal already performs morphological feature recognition directly on image pixels (e.g., identifying lobed cuticles, quartz veins, and fissured bark).
-2. **Marginal User Benefit:** While spatial summaries provide directional tokens (e.g., *"focal subject occupies center quadrant"*), they do not alter the fundamental taxonomy or core quality of the observation.
+2. **No Demonstrated User Benefit:** The heuristic summary only provides coarse colour-bucket and directional tokens (e.g., *"focal subject occupies center quadrant"*). Because Pipeline C was never executed, no benefit to identification or challenge quality has been measured.
 3. **Product Simplicity:** In keeping with the "Touch Grass" ethos, avoiding unnecessary architectural layers keeps the codebase lean, robust, and zero-maintenance.
