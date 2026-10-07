@@ -5,6 +5,7 @@ import {
   sanitizeBase64Image,
   validateChallengeSafety,
 } from '@/lib/validation';
+import { evaluateMissionQuality } from '@/lib/mission/quality';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,6 +65,17 @@ export async function POST(req: NextRequest) {
         `[api/analyze] Unsafe challenge rejected (${safetyCheck.violations.join(', ')}). Substituting deterministic safe fallback.`
       );
       result.challenge = safetyCheck.sanitizedChallenge;
+    }
+
+    // 6. Milestone 4: Deterministic Mission Quality & Grounding Evaluation
+    if (result.mission) {
+      result.qualityReport = evaluateMissionQuality(result.mission, {
+        identification: result.identification,
+        description: result.description,
+        evidence: result.evidence,
+        observation: result.observation,
+        safety: result.safety,
+      });
     }
 
     const totalServerDurationMs = Date.now() - requestStartTime;

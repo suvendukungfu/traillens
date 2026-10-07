@@ -1,0 +1,497 @@
+{
+  "metadata": {
+    "generatedAt": "2026-10-07T10:01:33.165Z",
+    "milestone": "Milestone 4: Mission Quality + Grounding Rubric",
+    "evaluator": "deterministic",
+    "scope": "Offline 10-fixture contract validation suite",
+    "disclaimer": "This artifact represents deterministic contract verification on standardized synthetic/edge-case fixtures (A through J). It is not an empirical user study or real-world field-testing measurement.",
+    "rubricConfiguration": {
+      "maxScore": 100,
+      "maxDimensionScore": 20,
+      "passingScore": 70,
+      "passingDimensionScore": 14,
+      "dimensions": [
+        {
+          "key": "grounding",
+          "name": "Grounding",
+          "maxScore": 20,
+          "minScore": 14
+        },
+        {
+          "key": "specificity",
+          "name": "Specificity",
+          "maxScore": 20,
+          "minScore": 14
+        },
+        {
+          "key": "safety",
+          "name": "Safety",
+          "maxScore": 20,
+          "minScore": 14
+        },
+        {
+          "key": "executability",
+          "name": "Executability",
+          "maxScore": 20,
+          "minScore": 14
+        },
+        {
+          "key": "outdoorWorthwhile",
+          "name": "Outdoor Value",
+          "maxScore": 20,
+          "minScore": 14
+        }
+      ]
+    }
+  },
+  "summary": {
+    "fixtureCount": 10,
+    "passedCount": 4,
+    "failedCount": 6,
+    "overallPassRatePercent": 40,
+    "averageQualityScore": 85.4,
+    "weakestDimension": {
+      "dimension": "specificity",
+      "passRatePercent": 60,
+      "averageScore": 14.6,
+      "failureCount": 4,
+      "rationale": "Dimension had the lowest pass rate (60%) with 4 fixture failure(s)."
+    },
+    "dimensionSummary": {
+      "grounding": {
+        "averageScore": 17,
+        "maxScore": 20,
+        "passed": 8,
+        "failed": 2,
+        "passRatePercent": 80
+      },
+      "specificity": {
+        "averageScore": 14.6,
+        "maxScore": 20,
+        "passed": 6,
+        "failed": 4,
+        "passRatePercent": 60
+      },
+      "safety": {
+        "averageScore": 18,
+        "maxScore": 20,
+        "passed": 9,
+        "failed": 1,
+        "passRatePercent": 90
+      },
+      "executability": {
+        "averageScore": 18.4,
+        "maxScore": 20,
+        "passed": 8,
+        "failed": 2,
+        "passRatePercent": 80
+      },
+      "outdoorWorthwhile": {
+        "averageScore": 17.4,
+        "maxScore": 20,
+        "passed": 9,
+        "failed": 1,
+        "passRatePercent": 90
+      }
+    }
+  },
+  "exactFailedChecks": [
+    {
+      "code": "SPECIFICITY_NO_OBSERVABLE_PROPERTY",
+      "dimension": "specificity",
+      "severity": "warning",
+      "count": 4,
+      "sampleMessage": "Mission lacks concrete observable physical properties (e.g., veins, margins, bark, clusters)."
+    },
+    {
+      "code": "GROUNDING_TARGET_DISCONNECTED",
+      "dimension": "grounding",
+      "severity": "error",
+      "count": 2,
+      "sampleMessage": "Mission target and steps show no identifiable connection to the observed subject."
+    },
+    {
+      "code": "SPECIFICITY_UNBOUNDED_SCOPE",
+      "dimension": "specificity",
+      "severity": "warning",
+      "count": 2,
+      "sampleMessage": "Mission lacks bounding constraints (e.g., quantities, proximity, or spatial bounds)."
+    },
+    {
+      "code": "SPECIFICITY_NO_OPERATIONAL_VERB",
+      "dimension": "specificity",
+      "severity": "warning",
+      "count": 2,
+      "sampleMessage": "Mission lacks operational action verbs (e.g., compare, count, locate, inspect)."
+    },
+    {
+      "code": "OUTDOOR_LACKS_PHYSICAL_DISENGAGEMENT",
+      "dimension": "outdoorWorthwhile",
+      "severity": "warning",
+      "count": 2,
+      "sampleMessage": "Mission does not explicitly encourage stepping away from phone or spatial movement."
+    },
+    {
+      "code": "SPECIFICITY_VAGUE_PHRASE",
+      "dimension": "specificity",
+      "severity": "error",
+      "count": 1,
+      "sampleMessage": "Mission contains vague non-operational phrasing (e.g., \"explore the area\", \"look around\")."
+    },
+    {
+      "code": "GROUNDING_IRRELEVANT_DOMAIN",
+      "dimension": "grounding",
+      "severity": "error",
+      "count": 1,
+      "sampleMessage": "Mission introduces irrelevant physical measurements or non-outdoor domain concepts."
+    },
+    {
+      "code": "EXECUTABILITY_DURATION_OUT_OF_BOUNDS",
+      "dimension": "executability",
+      "severity": "error",
+      "count": 1,
+      "sampleMessage": "Duration (60s) is outside required 120s–300s field exploration window."
+    },
+    {
+      "code": "EXECUTABILITY_UNVERIFIABLE_SUCCESS_CRITERIA",
+      "dimension": "executability",
+      "severity": "error",
+      "count": 1,
+      "sampleMessage": "Success criteria is missing, trivial, or does not declare verifiable physical outcome."
+    },
+    {
+      "code": "SAFETY_HAZARD_DETECTED",
+      "dimension": "safety",
+      "severity": "error",
+      "count": 1,
+      "sampleMessage": "Production safety gate flagged outdoor hazard: Wild foraging or ingestion hazard, Tactile interaction with potentially toxic fungi, Harvesting, picking, or collecting wild flora or specimens"
+    },
+    {
+      "code": "OUTDOOR_SCREEN_ONLY_TASK",
+      "dimension": "outdoorWorthwhile",
+      "severity": "error",
+      "count": 1,
+      "sampleMessage": "Mission can be completed on-screen or cognitively without physical outdoor investigation."
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "fixture-a-grounded-leaf",
+      "name": "A. Strong Grounded Leaf Mission",
+      "category": "strong",
+      "description": "Exemplary grounded observation of Coast Live Oak leaf morphology.",
+      "passed": true,
+      "totalScore": 100,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 20,
+        "safety": 20,
+        "executability": 20,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [],
+      "issues": []
+    },
+    {
+      "id": "fixture-b-vague-generic",
+      "name": "B. Vague Generic Mission",
+      "category": "failing",
+      "description": "Fails specificity by using generic empty filler phrases.",
+      "passed": false,
+      "totalScore": 70,
+      "dimensionScores": {
+        "grounding": 10,
+        "specificity": 0,
+        "safety": 20,
+        "executability": 20,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [
+        "grounding",
+        "specificity"
+      ],
+      "issues": [
+        {
+          "dimension": "grounding",
+          "severity": "error",
+          "code": "GROUNDING_TARGET_DISCONNECTED",
+          "message": "Mission target and steps show no identifiable connection to the observed subject.",
+          "penalty": 10
+        },
+        {
+          "dimension": "specificity",
+          "severity": "error",
+          "code": "SPECIFICITY_VAGUE_PHRASE",
+          "message": "Mission contains vague non-operational phrasing (e.g., \"explore the area\", \"look around\").",
+          "penalty": 14
+        },
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_NO_OBSERVABLE_PROPERTY",
+          "message": "Mission lacks concrete observable physical properties (e.g., veins, margins, bark, clusters).",
+          "penalty": 6
+        }
+      ]
+    },
+    {
+      "id": "fixture-c-grounding-mismatch",
+      "name": "C. Grounding Mismatch",
+      "category": "failing",
+      "description": "Fails grounding by asking user to measure irrelevant atmospheric air pressure.",
+      "passed": false,
+      "totalScore": 70,
+      "dimensionScores": {
+        "grounding": 0,
+        "specificity": 10,
+        "safety": 20,
+        "executability": 20,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [
+        "grounding",
+        "specificity"
+      ],
+      "issues": [
+        {
+          "dimension": "grounding",
+          "severity": "error",
+          "code": "GROUNDING_IRRELEVANT_DOMAIN",
+          "message": "Mission introduces irrelevant physical measurements or non-outdoor domain concepts.",
+          "penalty": 12
+        },
+        {
+          "dimension": "grounding",
+          "severity": "error",
+          "code": "GROUNDING_TARGET_DISCONNECTED",
+          "message": "Mission target and steps show no identifiable connection to the observed subject.",
+          "penalty": 10
+        },
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_NO_OBSERVABLE_PROPERTY",
+          "message": "Mission lacks concrete observable physical properties (e.g., veins, margins, bark, clusters).",
+          "penalty": 6
+        },
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_UNBOUNDED_SCOPE",
+          "message": "Mission lacks bounding constraints (e.g., quantities, proximity, or spatial bounds).",
+          "penalty": 4
+        }
+      ]
+    },
+    {
+      "id": "fixture-d-invalid-duration",
+      "name": "D. Invalid Duration Out of Bounds",
+      "category": "failing",
+      "description": "Fails executability by setting a 60-second duration (below 120s minimum).",
+      "passed": false,
+      "totalScore": 92,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 20,
+        "safety": 20,
+        "executability": 12,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [
+        "executability"
+      ],
+      "issues": [
+        {
+          "dimension": "executability",
+          "severity": "error",
+          "code": "EXECUTABILITY_DURATION_OUT_OF_BOUNDS",
+          "message": "Duration (60s) is outside required 120s–300s field exploration window.",
+          "penalty": 8
+        }
+      ]
+    },
+    {
+      "id": "fixture-e-empty-success",
+      "name": "E. Empty Success Criteria",
+      "category": "failing",
+      "description": "Fails executability with trivial non-verifiable success criteria.",
+      "passed": false,
+      "totalScore": 92,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 20,
+        "safety": 20,
+        "executability": 12,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [
+        "executability"
+      ],
+      "issues": [
+        {
+          "dimension": "executability",
+          "severity": "error",
+          "code": "EXECUTABILITY_UNVERIFIABLE_SUCCESS_CRITERIA",
+          "message": "Success criteria is missing, trivial, or does not declare verifiable physical outcome.",
+          "penalty": 8
+        }
+      ]
+    },
+    {
+      "id": "fixture-f-unsafe-activity",
+      "name": "F. Unsafe Activity (Foraging / Ingestion)",
+      "category": "failing",
+      "description": "Fails safety gate by instructing user to pick and taste fungi.",
+      "passed": false,
+      "totalScore": 60,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 6,
+        "safety": 0,
+        "executability": 20,
+        "outdoorWorthwhile": 14
+      },
+      "failedDimensions": [
+        "specificity",
+        "safety"
+      ],
+      "issues": [
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_NO_OBSERVABLE_PROPERTY",
+          "message": "Mission lacks concrete observable physical properties (e.g., veins, margins, bark, clusters).",
+          "penalty": 6
+        },
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_NO_OPERATIONAL_VERB",
+          "message": "Mission lacks operational action verbs (e.g., compare, count, locate, inspect).",
+          "penalty": 4
+        },
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_UNBOUNDED_SCOPE",
+          "message": "Mission lacks bounding constraints (e.g., quantities, proximity, or spatial bounds).",
+          "penalty": 4
+        },
+        {
+          "dimension": "safety",
+          "severity": "error",
+          "code": "SAFETY_HAZARD_DETECTED",
+          "message": "Production safety gate flagged outdoor hazard: Wild foraging or ingestion hazard, Tactile interaction with potentially toxic fungi, Harvesting, picking, or collecting wild flora or specimens",
+          "penalty": 20
+        },
+        {
+          "dimension": "outdoorWorthwhile",
+          "severity": "warning",
+          "code": "OUTDOOR_LACKS_PHYSICAL_DISENGAGEMENT",
+          "message": "Mission does not explicitly encourage stepping away from phone or spatial movement.",
+          "penalty": 6
+        }
+      ]
+    },
+    {
+      "id": "fixture-g-screen-only",
+      "name": "G. Screen-Only Cognitive Activity",
+      "category": "failing",
+      "description": "Fails outdoor-worthwhile dimension by demanding the user stare at the phone screen.",
+      "passed": false,
+      "totalScore": 70,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 10,
+        "safety": 20,
+        "executability": 20,
+        "outdoorWorthwhile": 0
+      },
+      "failedDimensions": [
+        "specificity",
+        "outdoorWorthwhile"
+      ],
+      "issues": [
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_NO_OBSERVABLE_PROPERTY",
+          "message": "Mission lacks concrete observable physical properties (e.g., veins, margins, bark, clusters).",
+          "penalty": 6
+        },
+        {
+          "dimension": "specificity",
+          "severity": "warning",
+          "code": "SPECIFICITY_NO_OPERATIONAL_VERB",
+          "message": "Mission lacks operational action verbs (e.g., compare, count, locate, inspect).",
+          "penalty": 4
+        },
+        {
+          "dimension": "outdoorWorthwhile",
+          "severity": "error",
+          "code": "OUTDOOR_SCREEN_ONLY_TASK",
+          "message": "Mission can be completed on-screen or cognitively without physical outdoor investigation.",
+          "penalty": 14
+        },
+        {
+          "dimension": "outdoorWorthwhile",
+          "severity": "warning",
+          "code": "OUTDOOR_LACKS_PHYSICAL_DISENGAGEMENT",
+          "message": "Mission does not explicitly encourage stepping away from phone or spatial movement.",
+          "penalty": 6
+        }
+      ]
+    },
+    {
+      "id": "fixture-h-strong-comparison",
+      "name": "H. Strong Comparison Mission",
+      "category": "strong",
+      "description": "Exemplary comparative field mission exploring Bigleaf Maple canopy vs ground leaves.",
+      "passed": true,
+      "totalScore": 100,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 20,
+        "safety": 20,
+        "executability": 20,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [],
+      "issues": []
+    },
+    {
+      "id": "fixture-i-strong-counting",
+      "name": "I. Strong Counting Mission",
+      "category": "strong",
+      "description": "Exemplary counting mission mapping pine cone Fibonacci spirals in nature.",
+      "passed": true,
+      "totalScore": 100,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 20,
+        "safety": 20,
+        "executability": 20,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [],
+      "issues": []
+    },
+    {
+      "id": "fixture-j-strong-observation",
+      "name": "J. Strong Observation Mission",
+      "category": "strong",
+      "description": "Exemplary observation mission studying concentric growth zones of crustose rock lichen.",
+      "passed": true,
+      "totalScore": 100,
+      "dimensionScores": {
+        "grounding": 20,
+        "specificity": 20,
+        "safety": 20,
+        "executability": 20,
+        "outdoorWorthwhile": 20
+      },
+      "failedDimensions": [],
+      "issues": []
+    }
+  ]
+}

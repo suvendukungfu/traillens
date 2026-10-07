@@ -32,6 +32,34 @@ export interface InferenceTelemetry {
   outputTokens?: number;
 }
 
+export interface MissionQualityIssue {
+  dimension: 'grounding' | 'specificity' | 'safety' | 'executability' | 'outdoorWorthwhile';
+  severity: 'warning' | 'error';
+  code: string;
+  message: string;
+  penalty: number;
+}
+
+export interface DimensionScores {
+  grounding: number;
+  specificity: number;
+  safety: number;
+  executability: number;
+  outdoorWorthwhile: number;
+}
+
+export interface MissionQualityReport {
+  totalScore: number;
+  passed: boolean;
+  grounded: boolean;
+  specific: boolean;
+  safe: boolean;
+  executable: boolean;
+  outdoorWorthwhile: boolean;
+  dimensionScores: DimensionScores;
+  issues: MissionQualityIssue[];
+}
+
 export interface AIAnalysisResult {
   identification: string;
   confidence: AIConfidence;
@@ -44,6 +72,7 @@ export interface AIAnalysisResult {
   safety: string;
   inferenceDurationMs?: number;
   telemetry?: InferenceTelemetry;
+  qualityReport?: MissionQualityReport; // M4: Deterministic quality evaluation
 }
 
 export type ChallengeDifficulty = 'easy' | 'moderate' | 'curious';

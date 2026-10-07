@@ -53,6 +53,12 @@ export function stripSafeObservationIdioms(text: string): string {
   // 5. Aesthetic taste: "good taste", "matter of taste"
   cleaned = cleaned.replace(/\b(?:good|poor|artistic|matter\s+of)\s+taste\b/gi, 'aesthetic');
 
+  // 6. Non-harvesting vantage point idioms: "pick a vantage point / spot / position / place"
+  cleaned = cleaned.replace(
+    /\bpick\s+(?:a|an)\s+(?:vantage\s+point|spot|place|position|location|path|route)\b/gi,
+    'choose a spot'
+  );
+
   return cleaned;
 }
 

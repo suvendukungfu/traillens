@@ -13,6 +13,7 @@ import {
   ShieldAlert,
   FileText,
   RotateCcw,
+  Check,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -404,9 +405,15 @@ export default function ChallengeCard({
           </span>
         </div>
 
-        <span className="inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
-          +{challenge.points} pts
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 rounded-full">
+            <Check className="w-3 h-3 text-emerald-600" />
+            FIELD-READY
+          </span>
+          <span className="inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
+            +{challenge.points} pts
+          </span>
+        </div>
       </div>
 
       {/* Mission Title */}

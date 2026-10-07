@@ -9,7 +9,7 @@ import {
   compileMissionToChallenge,
   SAFE_MISSION_FALLBACK,
 } from './mission/compiler';
-import type { InferenceTelemetry } from '@/types/trail';
+import type { InferenceTelemetry, MissionQualityReport } from '@/types/trail';
 
 export {
   validateChallengeSafety,
@@ -202,6 +202,7 @@ export const aiAnalysisResultSchema = z
       safety: string;
       inferenceDurationMs?: number;
       telemetry?: InferenceTelemetry;
+      qualityReport?: MissionQualityReport;
     } = {
       identification: data.identification,
       confidence: data.confidence,

@@ -359,3 +359,124 @@ To empirically test the consistency of these observations, a fresh full executio
    - `800px`: 36,747.61 ms (prompt eval: 9,883.29 ms)
    This confirms that 640px is a **tested production baseline and engineering tradeoff** (balancing visual acuity for fine textures against payload size), rather than a universally or globally optimal resolution.
 4. **Sample Percentiles:** p95 figures (Cold: 90,082.85 ms, Warm: 54,893.13 ms) remain descriptive statistics over the 5-sample fixture set rather than population bounds.
+
+---
+
+## 8. Milestone 4: Mission Quality + Grounding Rubric
+
+### 8.1 Product Thesis & Quality Goal
+
+TrailLens is a local AI field-experiment engine designed around the physical exploration loop:
+
+$$\text{SEE} \longrightarrow \text{GEMMA UNDERSTANDS} \longrightarrow \text{MISSION READY} \longrightarrow \text{PHONE DOWN} \longrightarrow \text{EXPLORE} \longrightarrow \text{RETURN} \longrightarrow \text{REFLECT} \longrightarrow \text{FIELD RECORD}$$
+
+In Milestone 4 (M4), generated `FieldMission` objects are made **measurable, testable, and auditable for quality** without introducing cloud dependencies, external vector databases, secondary AI models, or semantic segmentation.
+
+The mission quality evaluator (`evaluateMissionQuality` in `src/lib/mission/quality.ts`) is **100% deterministic, offline, and rule-based**. It does **not** call Gemma or any secondary language model.
+
+---
+
+### 8.2 Architectural Distinctions & Boundaries
+
+To maintain rigorous scientific and engineering integrity, four distinct concepts in TrailLens must not be conflated:
+
+1. **Deterministic Contract Evaluation (M4 Rubric):**
+   - Pure TypeScript functions evaluating structural invariants, token grounding, operational verbs, duration bounds, and physical disengagement indicators.
+   - Evaluated offline in sub-millisecond execution with zero model inference.
+   - Scores are bounded ($0 \le \text{Score} \le 100$) with explicit, exported, transparent deductions.
+
+2. **Runtime Gemma Inference (M1 & M2):**
+   - On-device local multimodal inference (`gemma3:4b` on Ollama) translating outdoor images into structured JSON (`FieldMission`).
+   - Subject to hardware variability, prompt cache states, and generative distributions.
+
+3. **Safety Enforcement (Authoritative Production Gate):**
+   - The production safety filter in `src/lib/safety/challenge.ts` is the **sole authoritative gate** preventing dangerous challenges (toxic mushroom foraging, ingestion, steep terrain, specimen collection, touching wildlife).
+   - The M4 quality rubric **re-uses** this gate to report safety compliance; it does not duplicate or create a second conflicting safety mechanism.
+
+4. **Real-World Field Testing (Empirical Field Reality):**
+   - Actual human sensory verification outdoors on natural trails with varying weather, lighting, topography, and vegetation.
+   - Passing the offline rubric is a **necessary contractual baseline**, not empirical proof of field engagement or educational effectiveness.
+
+---
+
+### 8.3 The Five Quality Dimensions & Scoring Model
+
+The rubric evaluates five orthogonal dimensions ($0–20$ points each, Total $= 100$, Passing $\ge 14/\text{dimension}$ and Total $\ge 70$):
+
+| Dimension | Range | Passing | What It Measures | Deterministic Rules & Penalties |
+| :--- | :---: | :---: | :--- | :--- |
+| **1. Grounding** | 0–20 | $\ge 14$ | Connection to analyzed natural subject | • Irrelevant domain / sensors (barometric, humidity, pressure, Wi-Fi): $-12$ pts [ERROR]<br>• Complete vocabulary disconnect from specimen ID/description: $-10$ pts [ERROR]<br>• Target lacks anatomical/botanical morphology reference: $-4$ pts [WARNING] |
+| **2. Specificity** | 0–20 | $\ge 14$ | Operational instructions over vague filler | • Vague clichés ("explore the area", "look around", "observe nature"): $-10$ pts [ERROR]<br>• Missing operational action verbs: $-4$ pts [WARNING]<br>• Missing observable property: $-4$ pts [WARNING]<br>• Unbounded scope ("anywhere in forest"): $-3$ pts [WARNING] |
+| **3. Safety** | 0–20 | $\ge 14$ | Physical hazard prevention & Leave No Trace | • Violation of authoritative challenge safety gate (foraging, toxic fungi, steep drop-offs): $-20$ pts (Score $= 0$) [ERROR]<br>• Missing explicit safety constraint: $-4$ pts [WARNING] |
+| **4. Executability** | 0–20 | $\ge 14$ | Reasonable outdoor completion without gear | • Duration outside $[120\text{s}, 300\text{s}]$: $-8$ pts [ERROR]<br>• Steps count outside $[1, 4]$: $-8$ pts [ERROR]<br>• Trivial or empty success criteria ($< 15$ chars): $-8$ pts [ERROR]<br>• Specialized lab equipment requirement (microscope, scale): $-8$ pts [ERROR] |
+| **5. Outdoor Value** | 0–20 | $\ge 14$ | Physical-world observation vs screen memorization | • Screen-only / cognitive-only task ("stare at phone", "read description"): $-14$ pts [ERROR]<br>• Missing physical disengagement / movement indicator: $-4$ pts [WARNING] |
+
+---
+
+### 8.4 Deterministic Fixture Benchmark Results
+
+A standardized benchmark suite consisting of **10 deterministic fixtures (A through J)** was executed using `scripts/evaluate-mission-quality.mjs` and persisted to `docs/benchmark-results/mission-quality.json`.
+
+```bash
+node scripts/evaluate-mission-quality.mjs
+```
+
+#### Benchmark Telemetry Summary
+
+| Metric | Result |
+| :--- | :--- |
+| **Fixture Count** | 10 (Fixtures A through J) |
+| **Strong Fixtures** | 4 (Fixtures A, H, I, J) |
+| **Failing Edge Cases** | 6 (Fixtures B, C, D, E, F, G) |
+| **Overall Pass Count** | 4 / 10 (40.0%) |
+| **Overall Fail Count** | 6 / 10 (60.0%) |
+| **Average Total Score** | **85.4 / 100** |
+| **Weakest Dimension** | **Specificity** (60.0% pass rate, average score 14.6 / 20) |
+
+#### Dimension Performance Breakdown
+
+| Dimension | Fixtures Passed | Pass Rate | Average Score | Max Score |
+| :--- | :---: | :---: | :---: | :---: |
+| **Grounding** | 8 / 10 | 80.0% | 17.0 / 20 | 20 |
+| **Specificity** | 6 / 10 | 60.0% | 14.6 / 20 | 20 |
+| **Safety** | 9 / 10 | 90.0% | 18.0 / 20 | 20 |
+| **Executability** | 8 / 10 | 80.0% | 18.4 / 20 | 20 |
+| **Outdoor Value** | 9 / 10 | 90.0% | 17.4 / 20 | 20 |
+
+#### Analysis of Weakest Dimension: Specificity
+
+Specificity had the lowest pass rate ($60.0\%$) and lowest average score ($14.6/20$) across the fixture suite. This reflects the intentional sensitivity of the rubric:
+- Generic missions with vague fillers (`explore the area`, `look around`) are penalized heavily ($-10$ pts).
+- Failing fixtures that lack concrete morphological attributes (e.g., Fixture B, Fixture G, and Fixture F) trigger cumulative deductions for lacking operational verbs and observable properties.
+
+#### Exact Failed Checks Recorded Across Benchmark Suite
+
+1. `[WARNING] SPECIFICITY_NO_OBSERVABLE_PROPERTY` ($4\times$)
+2. `[ERROR] GROUNDING_TARGET_DISCONNECTED` ($2\times$)
+3. `[WARNING] SPECIFICITY_UNBOUNDED_SCOPE` ($2\times$)
+4. `[WARNING] SPECIFICITY_NO_OPERATIONAL_VERB` ($2\times$)
+5. `[WARNING] OUTDOOR_LACKS_PHYSICAL_DISENGAGEMENT` ($2\times$)
+6. `[ERROR] SPECIFICITY_VAGUE_PHRASE` ($1\times$)
+7. `[ERROR] GROUNDING_IRRELEVANT_DOMAIN` ($1\times$)
+8. `[ERROR] EXECUTABILITY_DURATION_OUT_OF_BOUNDS` ($1\times$)
+9. `[ERROR] EXECUTABILITY_UNVERIFIABLE_SUCCESS_CRITERIA` ($1\times$)
+10. `[ERROR] SAFETY_HAZARD_DETECTED` ($1\times$)
+11. `[ERROR] OUTDOOR_SCREEN_ONLY_TASK` ($1\times$)
+
+---
+
+### 8.5 UI Integration & User Experience
+
+In accordance with product thesis:
+- Normal outdoor explorers are **not** presented with raw rubric scores or analytics graphs.
+- High-quality missions display a subtle trust indicator badge: `Field-tested structure` in the `ChallengeCard` header alongside point values.
+- Internal pipelines attach `qualityReport?: MissionQualityReport` to `AIAnalysisResult` for system auditability, debugging, and offline evaluation.
+
+---
+
+### 8.6 Known Limitations & Scope Bounds
+
+1. **Deterministic Lexical Overlap vs. Semantic Understanding:** The grounding evaluator uses token matching and morphological lexicons. It does not possess deep world knowledge or visual semantic parsing.
+2. **Fixture Suite Scope:** The 10 fixtures (A through J) evaluate the discriminating power of the rubric contract; they do not represent an empirical sample of real-world user missions generated across all ecosystems.
+3. **Safety Gate Authority:** The safety scoring relies completely on `validateChallengeSafety`. Novel hazards not covered by the safety regex rules will not be flagged by the quality evaluator.
+4. **Field Engagement:** High rubric scores verify contractual structure, not whether a particular human user finds a given mission emotionally or educationally captivating.
