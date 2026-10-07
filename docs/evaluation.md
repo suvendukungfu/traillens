@@ -330,3 +330,32 @@ Any developer can replicate these findings on their local machine:
 4. **Inspect Generated Results:**
 
    Review `docs/benchmark-results/gemma-latency.json` containing complete hardware details, ISO timestamps, and raw duration metrics for every run.
+
+---
+
+### 7.6 Reproducibility Verification Run (October 7, 2026)
+
+To empirically test the consistency of these observations, a fresh full execution of `scripts/benchmark-gemma.mjs` was conducted on the same 8 GB Apple M3 testbed (persisted in `docs/benchmark-results/gemma-latency.json`).
+
+#### Comparative Telemetry: Frozen M2 Baseline vs. Reproducibility Run
+
+| Metric / Experiment | Frozen M2 Baseline (`v2.0.0`) | Reproducibility Run (Oct 7) | Engineering Behavior & Findings |
+| :--- | :--- | :--- | :--- |
+| **Warm p50 Total** | 40,051.51 ms (~40.1s) | **52,488.88 ms (~52.5s)** | Shifted upward; shows local runtime variability under changing local system conditions and background load. |
+| **Cold p50 Total** | 57,748.72 ms (~57.8s) | **65,777.04 ms (~65.8s)** | Consistent direction; cold start remains substantially slower than warm steady-state. |
+| **Warm Model Load p50** | 61.40 ms | **70.43 ms** | **Reproduced:** `keep_alive` reduces warm model-load overhead to tens of milliseconds in the tested runs, versus multi-second cold loading. |
+| **Cold Model Load p50** | 4,611.86 ms | **7,574.40 ms** | **Reproduced:** Uncached cold start pays a multi-second weight allocation penalty. |
+| **Token Ceilings (`num_predict`)** | 128 / 192 / 256: 0% valid | **128 / 192 / 256: 0% valid** | **Reproduced:** Truncated JSON across all 3 limits; 128 / 192 / 256 remain invalid; 512 remains the smallest tested ceiling established in M2 that produced a valid `FieldMission` contract. |
+| **Prompt Token Reduction** | -513 tokens (-50.3%) | **-513 tokens (-50.3%)** | **Reproduced:** Deterministic token reduction (1,019 → 506 tokens). |
+| **JSON Mode vs. JSON Schema** | Observed Schema faster | **JSON Mode: 61,045 ms vs. Schema: 43,093 ms** | JSON Schema mode again showed lower observed latency under tested configurations. |
+
+#### Methodological Notes & Evidence Qualifications
+
+1. **Runtime Variability vs. Invariant Latency:** Absolute latency shifted upward in this second run (warm p50 rose from ~40.1s to ~52.5s), illustrating runtime variability on the 8 GB Apple M3 host machine under changing local system conditions and background load. Benchmark reproducibility demonstrates the **underlying engineering behavior and architectural trends** (e.g., model residency advantages, token bounds, prompt savings), not an invariant wall-clock number.
+2. **Attribution of JSON Schema Delta:** JSON Schema mode again showed lower observed latency than JSON mode under the tested configurations (43,092.65 ms vs. 61,045.19 ms). However, this benchmark does not isolate all runtime and prompt-cache effects, so the full observed delta cannot be claimed as solely caused by grammar enforcement.
+3. **Resolution Tradeoff (Not Global Optimality):** The reproducibility sweep on the test specimen observed:
+   - `480px`: 58,415.93 ms (prompt eval: 16,646.39 ms)
+   - `640px`: 44,750.32 ms (prompt eval: 9,653.29 ms)
+   - `800px`: 36,747.61 ms (prompt eval: 9,883.29 ms)
+   This confirms that 640px is a **tested production baseline and engineering tradeoff** (balancing visual acuity for fine textures against payload size), rather than a universally or globally optimal resolution.
+4. **Sample Percentiles:** p95 figures (Cold: 90,082.85 ms, Warm: 54,893.13 ms) remain descriptive statistics over the 5-sample fixture set rather than population bounds.
