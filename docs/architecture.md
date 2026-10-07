@@ -13,7 +13,7 @@ TrailLens is an outdoor-first AI companion designed with a single contrarian the
 
 Modern consumer mobile applications prioritize engagement loops, infinite feeds, and persistent screen retention. TrailLens inverts this pattern by using local, open-weight multimodal artificial intelligence to rapidly interpret nature observations and immediately challenge the user to put their device away.
 
-```
+```text
        [USER ENTERS OUTDOORS]
                   │
                   ▼
@@ -54,7 +54,7 @@ Modern consumer mobile applications prioritize engagement loops, infinite feeds,
 
 The system is partitioned into three strictly decoupled layers: Client Browser, Next.js Server Runtime, and Local Ollama Inference Engine.
 
-```
+```text
 +───────────────────────────────────────────────────────────────────────────+
 │                            1. CLIENT BROWSER                              │
 │                                                                           │
@@ -103,6 +103,7 @@ The system is partitioned into three strictly decoupled layers: Client Browser, 
 ```
 
 ### Boundary Guarantees
+
 1. **The browser never communicates with Ollama directly.** All inference flows through `POST /api/analyze` to enforce validation, guard against unconstrained client payloads, and prevent CORS/network exposure.
 2. **Ephemeral Geolocation:** Geolocation coordinates never leave the browser. Coordinates are processed entirely in client memory and discarded upon session completion or navigation.
 3. **Zero Third-Party Telemetry:** No external tracking scripts, cloud analytics, or closed API tokens exist in the runtime.
@@ -163,12 +164,14 @@ export interface SessionStats {
 ## 4. Multimodal AI Integration (Gemma 3 4B)
 
 ### Model Selection Rationale
+
 - **Model:** `gemma3:4b` (`gemma3:4b-it` multimodal, 4.3B parameters, GGUF Q4_K_M quantization).
 - **Footprint:** ~3.3 GB disk footprint, runs at low latency on modern laptop unified memory (Apple Metal, NVIDIA CUDA, or modern CPU).
 - **Multimodal Competence:** Demonstrates morphological awareness for botanical structures (leaf lobes, waxy cuticles, venation), geological textures (river pebbles, quartz veins), and fungal/lichen growths.
 - **Independence:** Operates completely offline without external internet connectivity.
 
 ### Prompt Engineering & Structured Output
+
 The prompt (`src/lib/prompts.ts`) instructs Gemma 3 to act as an expert field naturalist:
 
 1. **Identification:** Direct, concise common name.
@@ -184,6 +187,7 @@ The prompt (`src/lib/prompts.ts`) instructs Gemma 3 to act as an expert field na
 ## 5. Geolocation Engine & Geodesic Calculation
 
 ### The Haversine Distance Engine (`src/lib/distance.ts`)
+
 Calculates great-circle distance between spherical coordinates on Earth (mean radius $R = 6,371,000$ meters):
 
 $$a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right)$$
@@ -191,12 +195,15 @@ $$c = 2 \cdot \operatorname{atan2}\left(\sqrt{a}, \sqrt{1-a}\right)$$
 $$d = R \cdot c$$
 
 ### Jitter Mitigation & Sanity Filtering
+
 Raw mobile GPS chips experience positional drift when stationary. TrailLens applies two filters:
+
 1. **Accuracy Threshold:** GPS fixes with reported horizontal accuracy $> 45$ meters are rejected to prevent spurious distance spikes.
 2. **Displacement Threshold:** Points separated by $< 3.0$ meters are treated as stationary noise and ignored.
 3. **Speed Boundary Filter:** Displacements implying speeds $> 25\text{ m/s}$ ($90\text{ km/h}$) are rejected as teleportation anomalies.
 
 ### Lifecycle & Resource Management (`src/lib/geolocation.ts`)
+
 - The browser watcher (`navigator.geolocation.watchPosition`) is encapsulated within `GeoManager`.
 - Whenever a session pauses, completes, or unmounts, `geoManager.stopTracking()` clears the watcher ID (`clearWatch`) and resets internal callbacks.
 - Timer intervals are explicitly tracked via React `useRef` and terminated in `useEffect` cleanup handlers to prevent background memory leaks and battery depletion.
@@ -208,3 +215,38 @@ Raw mobile GPS chips experience positional drift when stationary. TrailLens appl
 1. **Offline Autonomy:** Inference occurs over loopback `127.0.0.1:11434`. Disconnecting cellular or Wi-Fi connectivity has zero impact on inference capability once model weights are stored locally.
 2. **Input Hygiene:** Images uploaded to `/api/analyze` are bounded by strict payload size limits (Zod verification), sanitized against MIME spoofing, and validated before passing to the Ollama endpoint.
 3. **Non-Edibility Safety Policy:** Because wild plant identification with computer vision models cannot guarantee toxicological safety, the system prompt and UI explicitly mandate that users **never consume or handle wild flora or fungi based on AI identification**.
+
+---
+
+## 7. Experimental Computer-Vision & Spatial Segmentation Layer
+
+### Architectural Purpose & Design Boundaries
+
+To investigate whether dedicated computer-vision spatial intelligence improves real-world outdoor challenge grounding, an isolated prototype was constructed under `src/lib/vision/segmentation/`:
+
+```text
+[Input Image (≤640px)]
+         │
+         ▼
+[Spatial Segmentation Engine (Sharp Raster Clustering)]
+         │
+         ├── Macro-zone categorization (foliage, bark, stone, flora, background)
+         ├── Connected-component bounding box & centroid calculation
+         └── Normalization to 3x3 directional grid (e.g., center, lower-right)
+         │
+         ▼
+[Compact Spatial Scene Summary]
+         │ (Distilled text representation of composition, ~150 tokens)
+         ▼
+[Gemma 3 4B Multimodal Fusion Prompt]
+         │ (Image + Spatial Context combined)
+         ▼
+[Spatially Grounded Outdoor Challenge + Safety Gate]
+```
+
+### Key Engineering Decisions
+
+1. **Isolated Module:** Kept strictly behind the `ISegmentationEngine` contract (`src/lib/vision/segmentation/interface.ts`) to avoid coupling production Next.js routes to a specific CV library.
+2. **Zero Latency Penalty:** Operates in $\le 20\text{ ms}$ via native raster analysis rather than loading multi-gigabyte models into memory, maintaining strict compliance with the "Touch Grass" low-screen-time principle.
+3. **Challenge Safety Gate (`validateChallengeSafety`):** A hard validation layer that scans challenges for foraging, toxic fungal contact, or wildlife disturbance before presenting challenges to users.
+4. **Integration Gate Status:** Maintained as an **experimental research module**; the core production pipeline continues to rely directly on Gemma 3 4B multimodal vision to avoid unnecessary runtime dependencies.
