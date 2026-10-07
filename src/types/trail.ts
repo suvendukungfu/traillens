@@ -59,6 +59,23 @@ export interface OutdoorChallenge {
   points: number;
   completedAt?: number;
   mission?: FieldMission;
+  userReflection?: string; // M3: User-authored reflection recorded upon return
+}
+
+export interface FieldRecord {
+  id: string;
+  challengeId: string;
+  timestamp: number;
+  subjectIdentification: string;
+  missionTitle: string;
+  missionType: MissionType;
+  target: string;
+  durationSeconds: number;
+  distanceMeters: number;
+  userReflection?: string;
+  pointsEarned: number;
+  successCriteria: string;
+  safetyConfirmed: boolean;
 }
 
 export interface GeoPoint {

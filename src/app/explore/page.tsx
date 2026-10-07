@@ -71,8 +71,8 @@ export default function ExplorePage() {
     startChallenge(challengeId);
   };
 
-  const handleChallengeComplete = (challengeId: string) => {
-    completeChallenge(challengeId);
+  const handleChallengeComplete = (challengeId: string, userReflection?: string) => {
+    completeChallenge(challengeId, userReflection);
   };
 
   const handleChallengeSkip = (challengeId: string) => {
@@ -160,6 +160,7 @@ export default function ExplorePage() {
             onChallengeStart={handleChallengeStart}
             onChallengeComplete={handleChallengeComplete}
             onChallengeSkip={handleChallengeSkip}
+            onNewObservation={handleReset}
           />
         </section>
       )}

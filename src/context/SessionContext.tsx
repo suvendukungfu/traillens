@@ -13,6 +13,7 @@ import React, {
 import type {
   OutdoorSession,
   OutdoorChallenge,
+  FieldRecord,
   AIAnalysisResult,
   GeoPoint,
   SessionStats,
@@ -101,7 +102,8 @@ export function startChallengeInState(
 
 export function completeChallengeInState(
   state: ActiveSessionState,
-  challengeId: string
+  challengeId: string,
+  userReflection?: string
 ): ActiveSessionState {
   // Idempotent: check if already completed
   const target = state.challenges.find((c) => c.id === challengeId);
@@ -110,14 +112,18 @@ export function completeChallengeInState(
   }
 
   const completedAt = Date.now();
+  const trimmedReflection = userReflection?.trim() || undefined;
+
   return {
     ...state,
     challenges: state.challenges.map((c) =>
-      c.id === challengeId ? { ...c, status: 'completed', completedAt } : c
+      c.id === challengeId
+        ? { ...c, status: 'completed', completedAt, userReflection: trimmedReflection }
+        : c
     ),
     activeChallenge:
       state.activeChallenge && state.activeChallenge.id === challengeId
-        ? { ...state.activeChallenge, status: 'completed', completedAt }
+        ? { ...state.activeChallenge, status: 'completed', completedAt, userReflection: trimmedReflection }
         : state.activeChallenge,
   };
 }
@@ -164,6 +170,35 @@ export function computeSessionStats(state: ActiveSessionState): SessionStats {
   return stats;
 }
 
+/**
+ * Extracts compact FieldRecords from completed challenges in state
+ */
+export function getFieldRecordsFromState(state: ActiveSessionState): FieldRecord[] {
+  return state.challenges
+    .filter((c) => c.status === 'completed')
+    .map((c) => {
+      const matchingObs = state.observations.find(
+        (obs) => obs.mission?.title === c.title || obs.challenge === c.description
+      );
+
+      return {
+        id: 'record-' + c.id,
+        challengeId: c.id,
+        timestamp: c.completedAt || state.startTime,
+        subjectIdentification: matchingObs?.identification || c.mission?.target || 'Natural Subject',
+        missionTitle: c.title,
+        missionType: c.mission?.missionType || 'OBSERVE',
+        target: c.mission?.target || c.description,
+        durationSeconds: c.mission?.durationSeconds || 120,
+        distanceMeters: state.totalDistanceMeters,
+        userReflection: c.userReflection,
+        pointsEarned: c.points,
+        successCriteria: c.mission?.successCriteria || 'Completed non-destructive physical observation',
+        safetyConfirmed: true,
+      };
+    });
+}
+
 export function endSessionInState(state: ActiveSessionState): OutdoorSession {
   const stats = computeSessionStats(state);
   return {
@@ -190,6 +225,7 @@ export interface SessionContextValue {
   observations: AIAnalysisResult[];
   challenges: OutdoorChallenge[];
   activeChallenge: OutdoorChallenge | null;
+  fieldRecords: FieldRecord[];
   observationsCount: number;
   completedChallengesCount: number;
   currentStats: SessionStats;
@@ -204,7 +240,7 @@ export interface SessionContextValue {
 
   recordObservation: (observation: AIAnalysisResult) => OutdoorChallenge;
   startChallenge: (challengeId: string) => void;
-  completeChallenge: (challengeId: string) => void;
+  completeChallenge: (challengeId: string, userReflection?: string) => void;
   skipChallenge: (challengeId: string) => void;
 }
 
@@ -335,8 +371,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setState((prev) => startChallengeInState(prev, challengeId));
   }, []);
 
-  const completeChallenge = useCallback((challengeId: string) => {
-    setState((prev) => completeChallengeInState(prev, challengeId));
+  const completeChallenge = useCallback((challengeId: string, userReflection?: string) => {
+    setState((prev) => completeChallengeInState(prev, challengeId, userReflection));
   }, []);
 
   const skipChallenge = useCallback((challengeId: string) => {
@@ -348,6 +384,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const completedChallengesCount = useMemo(
     () => state.challenges.filter((c) => c.status === 'completed').length,
     [state.challenges]
+  );
+
+  const fieldRecords = useMemo(
+    () => getFieldRecordsFromState(state),
+    [state]
   );
 
   const currentStats: SessionStats = useMemo(
@@ -382,6 +423,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     observations: state.observations,
     challenges: state.challenges,
     activeChallenge: state.activeChallenge,
+    fieldRecords,
     observationsCount,
     completedChallengesCount,
     currentStats,

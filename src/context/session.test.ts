@@ -8,6 +8,7 @@ import {
   addGeoPointToState,
   computeSessionStats,
   endSessionInState,
+  getFieldRecordsFromState,
 } from './SessionContext';
 import { calculateTransparentScore } from '@/components/ExplorationScore';
 import type { AIAnalysisResult, GeoPoint, SessionStats } from '@/types/trail';
@@ -236,5 +237,96 @@ describe('TrailLens Session State & Touch-Grass Loop', () => {
     expect(result.breakdown[1].points).toBe(3);
     expect(result.breakdown[2].points).toBe(20);
     expect(result.breakdown[3].points).toBe(45);
+  });
+
+  // L. M3: Challenge completion persists user-authored reflection and trims whitespace
+  it('L. Challenge completion persists user-authored reflection and trims whitespace', () => {
+    const initial = createInitialSessionState('test-session-reflection');
+    const { nextState: withObs } = recordObservationToState(initial, mockObservation1, 'chal-refl');
+    const activeState = startChallengeInState(withObs, 'chal-refl');
+
+    const completedState = completeChallengeInState(
+      activeState,
+      'chal-refl',
+      '   Noticed distinct reddish-brown fissures in the lower trunk bark.   '
+    );
+
+    const challenge = completedState.challenges.find((c) => c.id === 'chal-refl');
+    expect(challenge?.status).toBe('completed');
+    expect(challenge?.userReflection).toBe('Noticed distinct reddish-brown fissures in the lower trunk bark.');
+  });
+
+  // M. M3: Empty or whitespace-only reflection is normalized to undefined
+  it('M. Empty or whitespace-only reflection is normalized to undefined', () => {
+    const initial = createInitialSessionState('test-session-empty-refl');
+    const { nextState: withObs } = recordObservationToState(initial, mockObservation1, 'chal-empty');
+    const completedState = completeChallengeInState(withObs, 'chal-empty', '    ');
+
+    const challenge = completedState.challenges.find((c) => c.id === 'chal-empty');
+    expect(challenge?.status).toBe('completed');
+    expect(challenge?.userReflection).toBeUndefined();
+  });
+
+  // N. M3: Idempotent completion preserves original reflection
+  it('N. Duplicate completion calls are idempotent and do not overwrite original reflection', () => {
+    const initial = createInitialSessionState('test-session-idempotent-refl');
+    const { nextState: withObs } = recordObservationToState(initial, mockObservation1, 'chal-idem');
+
+    const firstCompletion = completeChallengeInState(
+      withObs,
+      'chal-idem',
+      'First authentic observation recorded in field.'
+    );
+    const secondCompletion = completeChallengeInState(
+      firstCompletion,
+      'chal-idem',
+      'Should not overwrite first reflection.'
+    );
+
+    const challenge = secondCompletion.challenges.find((c) => c.id === 'chal-idem');
+    expect(challenge?.userReflection).toBe('First authentic observation recorded in field.');
+  });
+
+  // O. M3: getFieldRecordsFromState formats FieldRecord linking observation data
+  it('O. getFieldRecordsFromState extracts structured FieldRecords linking observation metadata', () => {
+    let state = createInitialSessionState('test-session-records');
+    state.totalDistanceMeters = 340;
+
+    const { nextState: withObs } = recordObservationToState(state, mockObservation1, 'chal-rec-1');
+    state = completeChallengeInState(
+      withObs,
+      'chal-rec-1',
+      'Observed soft needles attached individually around the branch.'
+    );
+
+    const records = getFieldRecordsFromState(state);
+    expect(records).toHaveLength(1);
+
+    const rec = records[0];
+    expect(rec.challengeId).toBe('chal-rec-1');
+    expect(rec.subjectIdentification).toBe('Coast Douglas-fir');
+    expect(rec.missionTitle).toBe(state.challenges[0].title);
+    expect(rec.userReflection).toBe('Observed soft needles attached individually around the branch.');
+    expect(rec.pointsEarned).toBe(15);
+    expect(rec.distanceMeters).toBe(340);
+    expect(rec.safetyConfirmed).toBe(true);
+  });
+
+  // P. M3: FieldRecords accumulate across multiple completed challenges
+  it('P. FieldRecords accumulate across multiple completed challenges in session', () => {
+    let state = createInitialSessionState('test-session-multi-records');
+
+    const res1 = recordObservationToState(state, mockObservation1, 'chal-m1');
+    state = completeChallengeInState(res1.nextState, 'chal-m1', 'First conifer observed.');
+
+    const res2 = recordObservationToState(state, mockObservation2, 'chal-m2');
+    state = completeChallengeInState(res2.nextState, 'chal-m2', 'Counted 4 distinct fern clusters.');
+
+    const records = getFieldRecordsFromState(state);
+    expect(records).toHaveLength(2);
+    expect(records[0].userReflection).toBe('First conifer observed.');
+    expect(records[1].userReflection).toBe('Counted 4 distinct fern clusters.');
+    expect(records[0].pointsEarned).toBe(15);
+    expect(records[1].pointsEarned).toBe(15);
   });
 });

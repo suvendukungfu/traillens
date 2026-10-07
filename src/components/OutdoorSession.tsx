@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Sparkles,
   CheckCircle2,
+  FileText,
 } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
 
@@ -33,6 +34,7 @@ export default function OutdoorSession({
     trackPoints,
     observations,
     challenges,
+    fieldRecords,
     observationsCount,
     completedChallengesCount,
     currentStats,
@@ -306,6 +308,68 @@ export default function OutdoorSession({
                 >
                   {c.status === 'completed' ? `+${c.points} pts` : c.status}
                 </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Completed Field Records (M3 Naturalist Log) */}
+      {fieldRecords.length > 0 && (
+        <div className="bg-surface border border-emerald-300 rounded-3xl p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-emerald-700" />
+              Completed Field Records
+            </span>
+            <span className="text-xs font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+              {fieldRecords.length} Grounded in Nature
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {fieldRecords.map((rec) => (
+              <div
+                key={rec.id}
+                className="p-3.5 rounded-2xl bg-surface-muted border border-border-subtle text-xs space-y-2"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-foreground text-sm">
+                      {rec.missionTitle}
+                    </h4>
+                    <p className="text-[11px] text-rock mt-0.5">
+                      Target: <strong className="text-foreground">{rec.target}</strong>
+                    </p>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    +{rec.pointsEarned} pts
+                  </span>
+                </div>
+
+                {rec.userReflection && (
+                  <div className="p-2.5 rounded-xl bg-surface border border-border-subtle">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-moss block mb-0.5">
+                      Naturalist Reflection:
+                    </span>
+                    <blockquote className="text-xs italic text-foreground leading-relaxed pl-2 border-l-2 border-moss">
+                      &ldquo;{rec.userReflection}&rdquo;
+                    </blockquote>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-[10px] text-rock pt-1 border-t border-border-subtle/40">
+                  <span>
+                    Duration: ~{Math.round(rec.durationSeconds / 60)} mins
+                  </span>
+                  <span>
+                    Recorded at{' '}
+                    {new Date(rec.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
