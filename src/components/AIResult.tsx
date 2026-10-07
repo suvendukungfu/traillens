@@ -56,12 +56,15 @@ export default function AIResult({
   // Synthesize or use existing challenge
   const challengeItem: OutdoorChallenge = activeChallenge || {
     id: 'ai-generated-field-challenge',
-    title: 'Outdoor Field Challenge',
+    title: result.mission?.title || 'Outdoor Field Challenge',
     description: result.challenge,
-    estimatedDuration: '2–5 mins',
+    estimatedDuration: result.mission
+      ? `${Math.round(result.mission.durationSeconds / 60)} mins`
+      : '2–5 mins',
     difficulty: 'moderate',
     status: 'pending',
     points: 15,
+    mission: result.mission,
   };
 
   return (
@@ -88,6 +91,14 @@ export default function AIResult({
         <h2 className="text-2xl font-bold tracking-tight text-foreground mb-2">
           {result.identification}
         </h2>
+
+        {/* Model Uncertainty Note */}
+        {result.uncertaintyReason && (
+          <div className="mb-3 text-xs text-rock bg-surface-muted px-3 py-2 rounded-xl border border-border-subtle flex items-start gap-2">
+            <span className="font-semibold text-foreground shrink-0">Uncertainty Note:</span>
+            <span>{result.uncertaintyReason}</span>
+          </div>
+        )}
 
         <p className="text-sm leading-relaxed text-rock mb-4">
           {result.description}

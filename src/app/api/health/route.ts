@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { HealthCheckResponse } from '@/types/trail';
+import { warmupOllamaModel } from '@/lib/ollama';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
   const configuredModel = process.env.OLLAMA_MODEL || 'gemma3:4b';
+  const shouldWarmup = request.nextUrl.searchParams.get('warmup') === 'true';
 
   try {
     const controller = new AbortController();
@@ -38,6 +40,11 @@ export async function GET() {
       (name) => name === configuredModel || name.startsWith(`${configuredModel}:`) || `${name}:latest` === configuredModel
     );
 
+    let modelWarmed: boolean | undefined = undefined;
+    if (shouldWarmup && modelAvailable) {
+      modelWarmed = await warmupOllamaModel(ollamaBaseUrl, configuredModel);
+    }
+
     const responseBody: HealthCheckResponse = {
       status: modelAvailable ? 'ok' : 'degraded',
       ollamaConnected: true,
@@ -46,6 +53,7 @@ export async function GET() {
       ollamaBaseUrl,
       availableModels,
       timestamp: new Date().toISOString(),
+      modelWarmed,
     };
 
     return NextResponse.json(responseBody, { status: 200 });

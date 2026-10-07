@@ -5,15 +5,45 @@
 
 export type AIConfidence = 'low' | 'medium' | 'high';
 
+export type MissionType =
+  | 'OBSERVE'
+  | 'COMPARE'
+  | 'COUNT'
+  | 'NOTICE'
+  | 'TRACE'
+  | 'PATTERN';
+
+export interface FieldMission {
+  missionType: MissionType;
+  title: string;
+  target: string;
+  durationSeconds: number; // bounded between 120 and 300
+  steps: string[]; // 1 to 4 steps
+  successCriteria: string;
+  safetyConstraints: string[];
+}
+
+export interface InferenceTelemetry {
+  totalDurationMs?: number;
+  loadDurationMs?: number;
+  promptEvalDurationMs?: number;
+  generationDurationMs?: number;
+  promptTokens?: number;
+  outputTokens?: number;
+}
+
 export interface AIAnalysisResult {
   identification: string;
   confidence: AIConfidence;
+  uncertaintyReason?: string;
   evidence: string[];
   description: string;
   observation: string;
-  challenge: string;
+  mission?: FieldMission; // Structured source of truth
+  challenge: string; // Presentation projection (backward compatible)
   safety: string;
   inferenceDurationMs?: number;
+  telemetry?: InferenceTelemetry;
 }
 
 export type ChallengeDifficulty = 'easy' | 'moderate' | 'curious';
@@ -28,6 +58,7 @@ export interface OutdoorChallenge {
   status: ChallengeStatus;
   points: number;
   completedAt?: number;
+  mission?: FieldMission;
 }
 
 export interface GeoPoint {
@@ -66,4 +97,5 @@ export interface HealthCheckResponse {
   ollamaBaseUrl: string;
   availableModels: string[];
   timestamp: string;
+  modelWarmed?: boolean;
 }

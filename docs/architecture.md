@@ -119,13 +119,33 @@ Data contracts are enforced at compile time via TypeScript and at runtime via Zo
 ```typescript
 export type AIConfidence = 'low' | 'medium' | 'high';
 
+export type MissionType =
+  | 'OBSERVE'
+  | 'COMPARE'
+  | 'COUNT'
+  | 'NOTICE'
+  | 'TRACE'
+  | 'PATTERN';
+
+export interface FieldMission {
+  missionType: MissionType;
+  title: string;
+  target: string;
+  durationSeconds: number; // bounded between 120 and 300
+  steps: string[]; // 1 to 4 steps
+  successCriteria: string;
+  safetyConstraints: string[];
+}
+
 export interface AIAnalysisResult {
   identification: string;
   confidence: AIConfidence;
+  uncertaintyReason?: string;
   evidence: string[];
   description: string;
   observation: string;
-  challenge: string;
+  mission?: FieldMission; // Structured source of truth
+  challenge: string; // Presentation projection (backward compatible)
   safety: string;
   inferenceDurationMs?: number;
 }
@@ -141,6 +161,7 @@ export interface OutdoorChallenge {
   status: ChallengeStatus;
   points: number;
   completedAt?: number;
+  mission?: FieldMission;
 }
 
 export interface GeoPoint {
@@ -168,19 +189,27 @@ export interface SessionStats {
 - **Model:** `gemma3:4b` (`gemma3:4b-it` multimodal, 4.3B parameters, GGUF Q4_K_M quantization).
 - **Footprint:** ~3.3 GB disk footprint, runs at low latency on modern laptop unified memory (Apple Metal, NVIDIA CUDA, or modern CPU).
 - **Multimodal Competence:** Demonstrates morphological awareness for botanical structures (leaf lobes, waxy cuticles, venation), geological textures (river pebbles, quartz veins), and fungal/lichen growths.
-- **Independence:** Operates completely offline without external internet connectivity.
+- **Local-First Independence:** Can execute inference without external internet connectivity when Next.js, Ollama, and model weights reside on the same host machine.
 
 ### Prompt Engineering & Structured Output
 
-The prompt (`src/lib/prompts.ts`) instructs Gemma 3 to act as an expert field naturalist:
+The prompt (`src/lib/prompts.ts`) instructs Gemma 3 to act as an offline AI field-experiment engine producing grounded observations and a structured Field Mission Contract:
 
 1. **Identification:** Direct, concise common name.
-2. **Confidence:** Self-reported label (`high`, `medium`, or `low`) emitted as text by the model according to the prompt's definitions. It is not a calibrated model probability.
-3. **Visual Evidence:** 2 to 4 concrete anatomical or environmental features seen in the photo.
-4. **Description:** Educational background (1–2 sentences).
-5. **Observation:** What surrounding environmental details to inspect.
-6. **Challenge:** An immediate real-world exploration task (2–5 minutes) that requires looking away from the device.
-7. **Safety Notice:** Compulsory warning regarding wildlife distance, terrain safety, and strict prohibition on wild foraging/edibility.
+2. **Confidence:** Self-reported label (`high`, `medium`, or `low`) emitted as text by the model. It is not a calibrated model probability.
+3. **Uncertainty Reason:** Explicit justification when confidence is medium or low.
+4. **Visual Evidence:** 2 to 4 concrete anatomical or environmental features seen in the photo.
+5. **Description:** Educational background (1–2 sentences).
+6. **Observation:** What surrounding environmental details to inspect.
+7. **Field Mission:** Structured experiment (`missionType`, `target`, `durationSeconds`, `steps`, `successCriteria`, `safetyConstraints`).
+8. **Safety Notice:** Compulsory warning regarding wildlife distance, terrain safety, and strict prohibition on wild foraging/edibility.
+
+#### Structured Output Mechanism (`src/lib/ollama.ts` & `src/lib/validation.ts`)
+
+1. **Ollama JSON Schema Format:** Local Ollama (v0.35.1+) supports passing a JSON Schema object directly through the chat `format` parameter.
+2. **Schema Compilation via Zod 4:** A pure structural schema (`rawAIAnalysisOutputSchema`) is compiled into standard JSON Schema via `z.toJSONSchema()` and passed in the `format` field of the Ollama request payload, guiding token generation to conform to the Field Mission structure.
+3. **Runtime Validation & Transformations:** The model response is validated through `aiAnalysisResultSchema.parse()`, applying Leave No Trace safety sanitization, compiling the deterministic challenge string, and providing fallbacks.
+4. **Resilient Fallback Parser:** If the local daemon drops punctuation or wraps in markdown fences, `sanitizeJsonText` and `attemptJsonRescue` provide robust recovery before throwing.
 
 ---
 
@@ -207,18 +236,77 @@ Invalid coordinates (NaN, non-finite, or out of latitude/longitude bounds) contr
 - The browser watcher (`navigator.geolocation.watchPosition`) is encapsulated within `GeolocationManager` (exported singleton `geoManager`).
 - Whenever a session pauses, completes, or unmounts, `geoManager.stopTracking()` clears the watcher (`clearWatch`) and resets the tracking state.
 - Timer intervals are explicitly tracked via React `useRef` and terminated in `useEffect` cleanup handlers to prevent background memory leaks and battery depletion.
+- *Browser Limitation Note:* Standard web geolocation operates while the application tab remains active. Mobile operating systems may throttle or suspend web timers and geolocation watchers if the browser is backgrounded.
 
 ---
 
-## 6. Security, Privacy, and Offline Operation
+## 6. Security, Privacy, Offline Operation, and Challenge Safety Gate
 
-1. **Offline Autonomy:** Inference occurs over loopback `127.0.0.1:11434`. Disconnecting cellular or Wi-Fi connectivity has zero impact on inference capability once model weights are stored locally.
-2. **Input Hygiene:** Images uploaded to `/api/analyze` are bounded by strict payload size limits (Zod verification), sanitized against MIME spoofing, and validated before passing to the Ollama endpoint.
-3. **Non-Edibility Safety Policy:** Because wild plant identification with computer vision models cannot guarantee toxicological safety, the system prompt and UI explicitly mandate that users **never consume or handle wild flora or fungi based on AI identification**.
+1. **Local-First Offline Operation:** Inference occurs over loopback `127.0.0.1:11434`. TrailLens executes without internet connectivity when the web application, local Ollama service, and model weights are running locally on the same host machine. (If hosted remotely, network connectivity between client browser and Next.js server is required, but no third-party cloud AI is ever contacted).
+2. **Input Hygiene:** Images uploaded to `/api/analyze` are bounded by strict payload limits (20MB base64 ceiling in Zod) and validated against allowed declared data-URL MIME types (`image/jpeg`, `image/png`, `image/webp`). (Validation inspects the declared data-URL header and payload length rather than performing binary magic-byte decoding).
+3. **Production Challenge Safety Gate (`src/lib/safety/challenge.ts`):** Because wild plant and fungi identification cannot guarantee toxicological safety, a two-layer defense-in-depth safety gate inspects every AI-generated outdoor challenge:
+   - **Layer 1 (Schema Sanitization):** Enforced during Zod parsing (`src/lib/validation.ts`). Negated safety warnings ("do not taste...") are stripped before keyword evaluation so safe instructions are not misflagged, while genuine hazards (foraging, ingestion, tactile contact with toxic specimens, climbing cliffs, deep water) trigger substitution with `SAFE_CHALLENGE_FALLBACK`.
+   - **Layer 2 (API Route Boundary Verification):** Enforced in `src/app/api/analyze/route.ts` prior to returning JSON to the browser, guaranteeing no unsafe challenge can reach the client even if upstream schema processing is bypassed.
+4. **Ephemeral Geolocation:** Geolocation coordinates never leave the browser. Coordinates are processed entirely in client memory and discarded upon session completion or navigation.
+5. **Model Warmup Protection (`GET /api/health?warmup=true`):** Optional non-blocking pre-warmup is guarded by an in-memory 60-second idempotency cooldown and in-flight promise deduplication in `src/lib/ollama.ts`, preventing repeated or concurrent model loading spikes without requiring authentication.
 
 ---
 
-## 7. Experimental Colour-Heuristic Spatial Summary Module
+## 7. Active Session State & Touch-Grass Loop
+
+### Architecture & Data Flow
+
+TrailLens connects field identification (`/explore`) with outdoor tracking (`/session`) via a lightweight, typed in-memory React Context (`src/context/SessionContext.tsx`).
+
+```text
+[Field Camera / Explore Page]
+              │
+              ▼
+    [POST /api/analyze]
+              │
+              ▼
+     [AIAnalysisResult]
+              │
+              ▼
+   [useSession().recordObservation]
+              │
+  ┌───────────┴────────────────────────────────────────┐
+  │         Root Layout SessionProvider                │
+  │  - Status: 'active' (auto-started or manual)       │
+  │  - In-memory Timer Interval (1-second tick)        │
+  │  - In-memory GeolocationManager (GPS watcher)      │
+  │  - Observations Array [AIAnalysisResult, ...]      │
+  │  - Challenges Array [OutdoorChallenge, ...]        │
+  │  - Challenge Completion Deduplication              │
+  │  - Transparent Score Calculation                   │
+  └───────────┬────────────────────────────────────────┘
+              │ Client Navigation (next/link)
+              ▼
+     [/session Page HUD]
+  - Real elapsed duration (live or finished)
+  - Real GPS distance traversed (Haversine km)
+  - Real observation count & field species log
+  - Real completed challenges count & status
+  - Transparent score breakdown
+  - Clean inactive state if no session started
+```
+
+### Key Design Principles
+
+1. **Root Layout In-Memory Persistence:** Because Next.js App Router root layout (`src/app/layout.tsx`) remains mounted during client navigation (`next/link`), `SessionProvider` retains active tracking state without requiring external state management libraries (Redux, Zustand). (State is held in-memory; a hard browser reload or tab close resets the session by design).
+2. **Zero Server Session Telemetry:** Session duration, GPS coordinates, and observations are never transmitted to any database or backend server.
+3. **Pocket Mode UX ("Screen-Shortening"):** After an identification challenge is generated, the UI presents an explicit directive: *"Put your phone away for 2 minutes."* The browser does not claim fake screen-off detection; the user physically explores nature, returns, and taps *"I'm done"*.
+4. **Idempotent Challenge Completion:** Challenges can only be completed once; duplicate clicks or component re-renders do not double count points.
+5. **Honest Inactive State:** Direct visits to `/session` when no session is active display a clear inactive state instead of a fabricated zero-score completion.
+6. **Transparent Exploration Score (`src/components/ExplorationScore.tsx`):**
+   - **Distance:** 1 point per 50 meters walked (`Math.floor(distance / 50)`)
+   - **Time Outside:** 1 point per 60 seconds (`Math.floor(seconds / 60)`)
+   - **Observations:** 10 points per identified specimen
+   - **Challenges:** 15 points per completed field challenge
+
+---
+
+## 8. Experimental Colour-Heuristic Spatial Summary Module
 
 ### Architectural Purpose & Design Boundaries
 
@@ -252,6 +340,6 @@ To investigate whether coarse spatial context could improve outdoor challenge gr
 ### Key Engineering Decisions
 
 1. **Isolated Module:** Kept strictly behind the `ISegmentationEngine` contract (`src/lib/vision/segmentation/interface.ts`) to avoid coupling production Next.js routes to a specific CV library.
-2. **Low Latency:** Uses simple raster analysis rather than loading a model into memory. Unit tests assert < 100 ms per sample on the development machine. The module relies on `sharp`, which is currently resolved through Next.js rather than declared directly in `package.json`.
-3. **Challenge Safety Check (`validateChallengeSafety`):** A keyword/regex check for foraging, fungal contact, plant contact, wildlife disturbance, and fall/water hazards. It is **not** wired into `/api/analyze`; it is exercised only by unit tests and the benchmark, so it does not currently filter challenges shown to users.
+2. **Low Latency:** Uses simple raster analysis rather than loading a model into memory. Unit tests assert < 100 ms per sample on the development machine.
+3. **Separation from Production Safety:** Production challenge safety lives in `src/lib/safety/challenge.ts` and is actively enforced in `/api/analyze`. The experimental vision module under `src/lib/vision/segmentation/` remains isolated from the production pipeline.
 4. **Integration Gate Status:** Maintained as an **experimental research module**; the core production pipeline continues to rely directly on Gemma 3 4B multimodal vision to avoid unnecessary runtime dependencies. No source file in `src/app` or `src/components` imports this module.

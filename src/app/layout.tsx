@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import { SessionProvider } from '@/context/SessionContext';
 
 export const metadata: Metadata = {
   title: 'TrailLens — Look beyond the screen',
@@ -19,8 +20,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="h-full">
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Navbar />
-        <main className="flex-1 flex flex-col">{children}</main>
+        <SessionProvider>
+          <Navbar />
+          <main className="flex-1 flex flex-col">{children}</main>
+        </SessionProvider>
       </body>
     </html>
   );

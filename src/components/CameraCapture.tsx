@@ -18,6 +18,29 @@ export default function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureP
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraSession, setCameraSession] = useState<number>(0);
 
+  // Phase 10: Perceived latency honest stage tracker (deterministic without fabricated percentages)
+  const [analysisStage, setAnalysisStage] = useState<string>('Analyzing Photo');
+
+  useEffect(() => {
+    if (!isAnalyzing) return;
+
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 3500) {
+        setAnalysisStage('Analyzing Photo');
+      } else if (elapsed < 12000) {
+        setAnalysisStage('Reading Visual Clues');
+      } else if (elapsed < 24000) {
+        setAnalysisStage('Building Field Mission');
+      } else {
+        setAnalysisStage('Mission Ready');
+      }
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [isAnalyzing]);
+
   // Stop media stream tracks cleanly
   const stopStream = useCallback(() => {
     if (streamRef.current) {
@@ -226,13 +249,16 @@ export default function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureP
             <button
               type="button"
               disabled={isAnalyzing}
-              onClick={() => onCapture(capturedImage)}
+              onClick={() => {
+                setAnalysisStage('Analyzing Photo');
+                onCapture(capturedImage);
+              }}
               className="flex-2 py-3 px-4 rounded-xl font-bold text-sm bg-moss hover:bg-moss-dark text-white shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-98 disabled:opacity-60"
             >
               {isAnalyzing ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-emerald-300" />
-                  <span>Gemma 3 Analyzing...</span>
+                  <span className="text-xs tracking-wide">{analysisStage}...</span>
                 </>
               ) : (
                 <>

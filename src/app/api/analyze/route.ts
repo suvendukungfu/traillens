@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeOutdoorImage, OllamaError } from '@/lib/ollama';
-import { analyzeRequestSchema, sanitizeBase64Image } from '@/lib/validation';
+import {
+  analyzeRequestSchema,
+  sanitizeBase64Image,
+  validateChallengeSafety,
+} from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,9 +55,24 @@ export async function POST(req: NextRequest) {
     // 4. Execute local inference via Ollama Gemma 3
     const result = await analyzeOutdoorImage(base64Data);
 
+    // 5. Challenge safety gate: Defense-in-depth Layer 2 (API route boundary verification).
+    // Intentionally verifies and enforces challenge safety at the HTTP boundary before returning
+    // data to the client, logging any safety violations and guaranteeing fallback replacement.
+    const safetyCheck = validateChallengeSafety(result.challenge);
+    if (!safetyCheck.isSafe) {
+      console.warn(
+        `[api/analyze] Unsafe challenge rejected (${safetyCheck.violations.join(', ')}). Substituting deterministic safe fallback.`
+      );
+      result.challenge = safetyCheck.sanitizedChallenge;
+    }
+
     const totalServerDurationMs = Date.now() - requestStartTime;
+    const t = result.telemetry;
+    const telemetryInfo = t
+      ? ` [load: ${t.loadDurationMs ?? 'n/a'}ms, prompt eval: ${t.promptEvalDurationMs ?? 'n/a'}ms, eval: ${t.generationDurationMs ?? 'n/a'}ms, tokens: in=${t.promptTokens ?? 'n/a'}/out=${t.outputTokens ?? 'n/a'}]`
+      : '';
     console.info(
-      `[api/analyze] Analysis complete in ${totalServerDurationMs}ms (model inference: ${result.inferenceDurationMs ?? 0}ms)`
+      `[api/analyze] Analysis complete in ${totalServerDurationMs}ms (model inference: ${result.inferenceDurationMs ?? 0}ms)${telemetryInfo}`
     );
 
     return NextResponse.json(result, { status: 200 });

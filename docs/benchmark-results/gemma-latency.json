@@ -1,0 +1,754 @@
+{
+  "metadata": {
+    "date": "2026-10-07T07:17:07.160Z",
+    "hardware": "Mac15,3 (Apple M3, 8GB RAM)",
+    "os": "macOS 26.6.2",
+    "nodeVersion": "v25.9.0",
+    "ollamaBaseUrl": "http://127.0.0.1:11434",
+    "model": "gemma3:4b",
+    "samplesCount": 5
+  },
+  "baseline": {
+    "cold": [
+      {
+        "sampleId": "oak_leaf",
+        "roundtripMs": 57838,
+        "totalDurationMs": 57748.72,
+        "loadDurationMs": 4611.86,
+        "promptEvalDurationMs": 17289.52,
+        "generationDurationMs": 35745.82,
+        "promptTokens": 1019,
+        "outputTokens": 307,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Oak Leaf (Quercus sp.)",
+          "confidence": "high",
+          "evidence": [
+            "Distinct lobed leaf shape",
+            "Presence of water droplets on leaf surface"
+          ],
+          "description": "The image shows a single, green leaf with prominent lobes, characteristic of oak species. The leaf is covered in water droplets, suggesting recent rainfall. The surrounding environment appears to be a moist, shaded forest floor.",
+          "observation": "Look for evidence of moss growth on nearby tree trunks.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Leaf Margin Comparison",
+            "target": "Leaf margins of nearby oak leaves",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two oak leaves nearby",
+              "Carefully observe and compare the shapes of the leaf margins"
+            ],
+            "successCriteria": "Visually identify at least two distinct differences in the leaf margin shapes (e.g., rounded, pointed, serrated)",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Respect the natural environment. Do not disturb the leaf litter or any plant life. Observe from a distance and avoid trampling vegetation."
+        }
+      },
+      {
+        "sampleId": "tree_bark",
+        "roundtripMs": 55054,
+        "totalDurationMs": 54698.04,
+        "loadDurationMs": 4343.71,
+        "promptEvalDurationMs": 13256.38,
+        "generationDurationMs": 36895.15,
+        "promptTokens": 1019,
+        "outputTokens": 322,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Tree Bark with Moss and Lichen",
+          "confidence": "high",
+          "evidence": [
+            "Dark, furrowed bark with visible ridges",
+            "Green moss growing on the trunk",
+            "Greyish-white lichen patches on the bark"
+          ],
+          "description": "The tree trunk exhibits a heavily furrowed bark texture, typical of mature trees. Green moss colonizes the lower trunk, likely benefiting from the moisture and shade. Patches of greyish-white lichen are present, indicating a relatively stable, shaded environment.",
+          "observation": "Look for evidence of animal activity around the base of the tree.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Bark Texture Comparison",
+            "target": "Bark texture of nearby trees",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate a similar tree nearby",
+              "Compare the roughness and ridge patterns of the bark"
+            ],
+            "successCriteria": "Visually identify at least two distinct differences in bark texture between the observed tree and a nearby tree.",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Respect the tree and its surrounding environment. Avoid disturbing the moss or lichen. Be mindful of your footing and surroundings."
+        }
+      },
+      {
+        "sampleId": "wildflower",
+        "roundtripMs": 101980,
+        "totalDurationMs": 101758.71,
+        "loadDurationMs": 20143.58,
+        "promptEvalDurationMs": 31242.24,
+        "generationDurationMs": 42833.98,
+        "promptTokens": 1019,
+        "outputTokens": 312,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Dandelion (Taraxacum officinale)",
+          "confidence": "high",
+          "evidence": [
+            "Distinct, spherical flower head with ray florets",
+            "Broad, deeply-divided leaves with toothed margins"
+          ],
+          "description": "This is a common wildflower characterized by its bright yellow flower head composed of numerous ray florets. The leaves are basal and deeply divided, exhibiting a characteristic toothed margin. The plant grows in a grassy, disturbed habitat.",
+          "observation": "Note the presence of any insects visiting the flower head.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Leaf Margin Comparison",
+            "target": "Leaf margins of nearby dandelion plants",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two nearby dandelion plants",
+              "Carefully observe and compare the shape of the leaf margins"
+            ],
+            "successCriteria": "Visually identify differences in leaf margin shape (e.g., toothed, smooth, lobed) between the two plants.",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Dandelions are a common and harmless plant. Avoid trampling vegetation or disturbing wildlife in the area."
+        }
+      },
+      {
+        "sampleId": "river_stones",
+        "roundtripMs": 58456,
+        "totalDurationMs": 58380.06,
+        "loadDurationMs": 4612.55,
+        "promptEvalDurationMs": 17458.72,
+        "generationDurationMs": 36131.48,
+        "promptTokens": 1019,
+        "outputTokens": 299,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Rounded Rocks (various lithologies)",
+          "confidence": "high",
+          "evidence": [
+            "Numerous rounded stones of varying sizes and colors",
+            "Distinct white and gray banding in several stones"
+          ],
+          "description": "The image shows a collection of rounded rocks scattered across a bed of moss and leaf litter. The rocks exhibit a range of colors including white, gray, brown, and red, with prominent banding in many specimens. The rocks appear to be weathered and smoothed by water and time.",
+          "observation": "Look for evidence of moss growth on nearby rocks or logs.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Rock Texture Comparison",
+            "target": "Texture variations among the rocks",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Select two rocks with different banding patterns",
+              "Compare the smoothness of their surfaces"
+            ],
+            "successCriteria": "Visually identify at least two distinct surface textures among the rocks",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Avoid disturbing the natural arrangement of the rocks. Do not attempt to move or rearrange them."
+        }
+      },
+      {
+        "sampleId": "pine_cone",
+        "roundtripMs": 48694,
+        "totalDurationMs": 48654.64,
+        "loadDurationMs": 3974.6,
+        "promptEvalDurationMs": 12840.44,
+        "generationDurationMs": 31695.03,
+        "promptTokens": 1019,
+        "outputTokens": 306,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Pine Cone (Pinus sp.)",
+          "confidence": "high",
+          "evidence": [
+            "Brown, woody cone with scales",
+            "Scales arranged in overlapping rows"
+          ],
+          "description": "The image shows a mature pine cone resting on a bed of pine needles and organic debris. The cone is brown and covered in overlapping scales, typical of coniferous seed dispersal. The surrounding ground is covered in fallen pine needles, indicating a coniferous forest environment.",
+          "observation": "Look for evidence of animal activity around the base of nearby pine trees.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Cone Scale Comparison",
+            "target": "Pine cones in the vicinity",
+            "durationSeconds": 180,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two pine cones of similar size",
+              "Observe and compare the scale arrangement and size of the cones"
+            ],
+            "successCriteria": "Visually identify at least two differences in scale arrangement or size between the two cones",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Remain on established trails and avoid disturbing the forest floor. Do not attempt to climb trees or approach wildlife."
+        }
+      }
+    ],
+    "warm": [
+      {
+        "sampleId": "oak_leaf",
+        "roundtripMs": 37086,
+        "totalDurationMs": 36953.74,
+        "loadDurationMs": 61.84,
+        "promptEvalDurationMs": 371.24,
+        "generationDurationMs": 36173.83,
+        "promptTokens": 1019,
+        "outputTokens": 307,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Oak Leaf (Quercus sp.)",
+          "confidence": "high",
+          "evidence": [
+            "Distinct lobed leaf shape with rounded tips",
+            "Presence of water droplets on leaf surface"
+          ],
+          "description": "The image shows a single, green oak leaf resting on a textured, dark bark surface covered in vibrant green moss. The leaf exhibits a characteristic lobed shape, suggesting it belongs to the oak family.",
+          "observation": "Look for evidence of other moss species in the area.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Leaf Margin Comparison",
+            "target": "Leaf margins of nearby oak leaves",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two nearby oak leaves",
+              "Observe and compare the shapes of the leaf margins"
+            ],
+            "successCriteria": "Visually identify at least two distinct differences in the leaf margin shapes (e.g., rounded, pointed, serrated)",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Respect the natural environment. Do not disturb the moss or any other plants or animals. Observe from a distance and avoid trampling vegetation."
+        }
+      },
+      {
+        "sampleId": "tree_bark",
+        "roundtripMs": 94706,
+        "totalDurationMs": 93790.81,
+        "loadDurationMs": 47.85,
+        "promptEvalDurationMs": 290.4,
+        "generationDurationMs": 85779.61,
+        "promptTokens": 1019,
+        "outputTokens": 347,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Tree Bark with Moss and Lichen",
+          "confidence": "high",
+          "evidence": [
+            "Dark, furrowed bark with visible ridges",
+            "Patches of bright green moss",
+            "Grayish-white lichen growing on the bark"
+          ],
+          "description": "The tree trunk exhibits heavily furrowed bark, typical of mature deciduous trees. Patches of vibrant green moss thrive in the shaded areas, while gray-white lichen forms distinct colonies on the bark surface. The overall impression is one of a moist, shaded forest environment.",
+          "observation": "Look for evidence of animal activity, such as tracks or scat, near the base of the tree.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Bark Texture Comparison",
+            "target": "Moss and lichen patches on the tree trunk",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two distinct patches of moss and lichen on the tree trunk.",
+              "Compare the texture of the moss and lichen – note any differences in surface smoothness or granularity."
+            ],
+            "successCriteria": "Visually identify at least two differences in the texture of the moss and lichen patches.",
+            "safetyConstraints": [
+              "Observe only; do not touch or disturb the moss or lichen."
+            ]
+          },
+          "safety": "Respect the natural environment. Do not remove or damage any plant or animal life. Stay on established trails to minimize impact."
+        }
+      },
+      {
+        "sampleId": "wildflower",
+        "roundtripMs": 44940,
+        "totalDurationMs": 44806.04,
+        "loadDurationMs": 61.4,
+        "promptEvalDurationMs": 1494.69,
+        "generationDurationMs": 42792.09,
+        "promptTokens": 1019,
+        "outputTokens": 327,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Dandelion (Taraxacum officinale)",
+          "confidence": "high",
+          "evidence": [
+            "Distinct, spherical flower head with ray florets",
+            "Lacy, deeply divided leaves with toothed margins"
+          ],
+          "description": "This plant exhibits a classic dandelion morphology: a bright yellow flower head composed of numerous ray florets surrounds a rosette of basal leaves. The leaves are characterized by their deeply divided, toothed margins, typical of the Asteraceae family. The plant is growing in a soil rich environment.",
+          "observation": "Note the presence of any small insects visiting the flower head.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Leaf Margin Comparison",
+            "target": "Leaf margins of nearby dandelions",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two dandelions within 5 meters",
+              "Compare the shape and arrangement of the leaf margins"
+            ],
+            "successCriteria": "Visually identify differences in leaf margin shape (e.g., toothed, smooth, lobed) between the two dandelions",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Dandelions are a common and harmless plant. Avoid trampling vegetation or disturbing wildlife in the area."
+        }
+      },
+      {
+        "sampleId": "river_stones",
+        "roundtripMs": 40159,
+        "totalDurationMs": 40051.51,
+        "loadDurationMs": 135.05,
+        "promptEvalDurationMs": 725.75,
+        "generationDurationMs": 38856.03,
+        "promptTokens": 1019,
+        "outputTokens": 318,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Rounded Stones (various lithotypes)",
+          "confidence": "high",
+          "evidence": [
+            "Numerous rounded stones of varying sizes and colors",
+            "Distinct white and gray banding in several stones"
+          ],
+          "description": "The image shows a collection of rounded stones scattered across a bed of moss and leaf litter. The stones exhibit a range of colors including white, gray, brown, and red, with prominent banding patterns in many of them. The stones appear to be weathered and smoothed by water and erosion.",
+          "observation": "Look for evidence of water flow nearby – a damp patch, a small stream, or a change in the soil texture.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Stone Texture Comparison",
+            "target": "Stone textures and banding patterns",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Select three stones with different banding patterns",
+              "Compare the smoothness and the density of the banding"
+            ],
+            "successCriteria": "Visually identify three stones with distinct banding patterns and textures",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Remain on established trails and avoid disturbing the natural environment. Do not attempt to move or rearrange the stones."
+        }
+      },
+      {
+        "sampleId": "pine_cone",
+        "roundtripMs": 33477,
+        "totalDurationMs": 33349.58,
+        "loadDurationMs": 41.12,
+        "promptEvalDurationMs": 258.21,
+        "generationDurationMs": 32906.72,
+        "promptTokens": 1019,
+        "outputTokens": 315,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Pine Cone (Pinus sp.)",
+          "confidence": "high",
+          "evidence": [
+            "Brown, woody cone with scales",
+            "Scales arranged in overlapping rows"
+          ],
+          "description": "The image shows a mature pine cone resting on a bed of pine needles and organic debris. The cone is brown and composed of woody scales arranged in a spiral pattern, typical of coniferous trees. The surrounding ground is covered in fallen needles, indicating a coniferous forest environment.",
+          "observation": "Look for evidence of animal activity, such as tracks or scat, near the base of nearby pine trees.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Cone Scale Comparison",
+            "target": "Pine cones in the immediate vicinity",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two pine cones of similar size",
+              "Observe the scale arrangement and shape of the cones"
+            ],
+            "successCriteria": "Visually identify differences in scale shape or arrangement between the two cones",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Remain on established trails and avoid disturbing the forest floor. Do not attempt to climb trees or access areas beyond your reach."
+        }
+      }
+    ],
+    "summary": {
+      "cold": {
+        "total": {
+          "min": 48654.64,
+          "median": 57748.72,
+          "p95": 101758.71,
+          "mean": 64248.03,
+          "max": 101758.71
+        },
+        "load": {
+          "min": 3974.6,
+          "median": 4611.86,
+          "p95": 20143.58,
+          "mean": 7537.26,
+          "max": 20143.58
+        },
+        "promptEval": {
+          "min": 12840.44,
+          "median": 17289.52,
+          "p95": 31242.24,
+          "mean": 18417.46,
+          "max": 31242.24
+        },
+        "generation": {
+          "min": 31695.03,
+          "median": 36131.48,
+          "p95": 42833.98,
+          "mean": 36660.29,
+          "max": 42833.98
+        }
+      },
+      "warm": {
+        "total": {
+          "min": 33349.58,
+          "median": 40051.51,
+          "p95": 93790.81,
+          "mean": 49790.34,
+          "max": 93790.81
+        },
+        "load": {
+          "min": 41.12,
+          "median": 61.4,
+          "p95": 135.05,
+          "mean": 69.45,
+          "max": 135.05
+        },
+        "promptEval": {
+          "min": 258.21,
+          "median": 371.24,
+          "p95": 1494.69,
+          "mean": 628.06,
+          "max": 1494.69
+        },
+        "generation": {
+          "min": 32906.72,
+          "median": 38856.03,
+          "p95": 85779.61,
+          "mean": 47301.66,
+          "max": 85779.61
+        }
+      }
+    }
+  },
+  "keepAliveExperiment": {
+    "defaultTtl": [],
+    "tenMinutesTtl": [],
+    "runs": [
+      {
+        "roundtripMs": 58525,
+        "totalDurationMs": 58374.28,
+        "loadDurationMs": 39.22,
+        "promptEvalDurationMs": 10463.65,
+        "generationDurationMs": 47432.94,
+        "promptTokens": 1019,
+        "outputTokens": 315,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Oak Leaf (Quercus sp.)",
+          "confidence": "high",
+          "evidence": [
+            "Distinct lobed leaf shape with rounded tips",
+            "Presence of water droplets on leaf surface"
+          ],
+          "description": "The image shows a single, green oak leaf resting on a moss-covered tree trunk. The leaf exhibits a characteristic lobed shape with rounded tips, indicating it is likely from an oak tree. The water droplets suggest recent rainfall or dew.",
+          "observation": "Look for evidence of other moss species growing on nearby tree trunks.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Leaf Margin Comparison",
+            "target": "Leaf margins of nearby oak leaves",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate two nearby oak leaves with similar size",
+              "Compare the shape and texture of the leaf margins"
+            ],
+            "successCriteria": "Visually identify two distinct leaf margin shapes (e.g., rounded, toothed, smooth)",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Respect the natural environment. Do not disturb the moss or any other plants or animals. Observe from a distance and avoid trampling vegetation."
+        }
+      },
+      {
+        "roundtripMs": 47480,
+        "totalDurationMs": 47365.17,
+        "loadDurationMs": 48.55,
+        "promptEvalDurationMs": 1972.8,
+        "generationDurationMs": 44601.05,
+        "promptTokens": 1019,
+        "outputTokens": 309,
+        "isValid": true,
+        "usedRescue": false,
+        "parsedContent": {
+          "identification": "Oak Leaf (Quercus sp.)",
+          "confidence": "high",
+          "evidence": [
+            "Distinct lobed leaf shape with rounded tips",
+            "Presence of water droplets on leaf surface"
+          ],
+          "description": "The image shows a single, green oak leaf resting on a moss-covered tree trunk. The leaf exhibits a characteristic lobed shape and appears to be partially covered in water. The surrounding environment suggests a moist, shaded woodland setting.",
+          "observation": "Look for evidence of other moss species growing on nearby tree trunks.",
+          "mission": {
+            "missionType": "COMPARE",
+            "title": "Leaf Margin Comparison",
+            "target": "Leaf margins of nearby oak leaves",
+            "durationSeconds": 120,
+            "steps": [
+              "Put your phone in your pocket",
+              "Locate a nearby oak leaf",
+              "Compare the shape and texture of the leaf margins"
+            ],
+            "successCriteria": "Visually identify at least two distinct differences in leaf margin shape (e.g., rounded, pointed, serrated)",
+            "safetyConstraints": [
+              "Observe only; do not pick, touch, or harvest specimens"
+            ]
+          },
+          "safety": "Respect the natural environment. Observe only; do not disturb the plant or its surroundings. Avoid trampling vegetation."
+        }
+      }
+    ],
+    "stats": {
+      "min": 47365.17,
+      "median": 52869.73,
+      "p95": 58374.28,
+      "mean": 52869.73,
+      "max": 58374.28
+    }
+  },
+  "numPredictExperiment": {
+    "limit_256": {
+      "runs": [
+        {
+          "sampleId": "oak_leaf",
+          "limit": 256,
+          "roundtripMs": 31279,
+          "totalDurationMs": 31185.94,
+          "loadDurationMs": 64.69,
+          "promptEvalDurationMs": 2202.6,
+          "generationDurationMs": 28489.89,
+          "promptTokens": 1019,
+          "outputTokens": 256,
+          "isValid": false,
+          "usedRescue": false,
+          "parsedContent": null
+        },
+        {
+          "sampleId": "tree_bark",
+          "limit": 256,
+          "roundtripMs": 40550,
+          "totalDurationMs": 40465.87,
+          "loadDurationMs": 86.63,
+          "promptEvalDurationMs": 11123.24,
+          "generationDurationMs": 29141.85,
+          "promptTokens": 1019,
+          "outputTokens": 256,
+          "isValid": false,
+          "usedRescue": false,
+          "parsedContent": null
+        }
+      ],
+      "validRate": 0,
+      "rescueRate": 0,
+      "avgTokens": 256,
+      "stats": {
+        "min": 31185.94,
+        "median": 35825.91,
+        "p95": 40465.87,
+        "mean": 35825.91,
+        "max": 40465.87
+      }
+    },
+    "limit_192": {
+      "runs": [
+        {
+          "sampleId": "oak_leaf",
+          "limit": 192,
+          "roundtripMs": 36243,
+          "totalDurationMs": 36022.57,
+          "loadDurationMs": 241.65,
+          "promptEvalDurationMs": 11151.07,
+          "generationDurationMs": 23901.24,
+          "promptTokens": 1019,
+          "outputTokens": 192,
+          "isValid": false,
+          "usedRescue": false,
+          "parsedContent": null
+        },
+        {
+          "sampleId": "tree_bark",
+          "limit": 192,
+          "roundtripMs": 32060,
+          "totalDurationMs": 31851.67,
+          "loadDurationMs": 198.18,
+          "promptEvalDurationMs": 10111.27,
+          "generationDurationMs": 21050.75,
+          "promptTokens": 1019,
+          "outputTokens": 192,
+          "isValid": false,
+          "usedRescue": false,
+          "parsedContent": null
+        }
+      ],
+      "validRate": 0,
+      "rescueRate": 0,
+      "avgTokens": 192,
+      "stats": {
+        "min": 31851.67,
+        "median": 33937.12,
+        "p95": 36022.57,
+        "mean": 33937.12,
+        "max": 36022.57
+      }
+    },
+    "limit_128": {
+      "runs": [
+        {
+          "sampleId": "oak_leaf",
+          "limit": 128,
+          "roundtripMs": 25590,
+          "totalDurationMs": 25466.94,
+          "loadDurationMs": 90.52,
+          "promptEvalDurationMs": 10319.67,
+          "generationDurationMs": 14680,
+          "promptTokens": 1019,
+          "outputTokens": 128,
+          "isValid": false,
+          "usedRescue": false,
+          "parsedContent": null
+        },
+        {
+          "sampleId": "tree_bark",
+          "limit": 128,
+          "roundtripMs": 25296,
+          "totalDurationMs": 25215.5,
+          "loadDurationMs": 71.61,
+          "promptEvalDurationMs": 11059.86,
+          "generationDurationMs": 13921.67,
+          "promptTokens": 1019,
+          "outputTokens": 128,
+          "isValid": false,
+          "usedRescue": false,
+          "parsedContent": null
+        }
+      ],
+      "validRate": 0,
+      "rescueRate": 0,
+      "avgTokens": 128,
+      "stats": {
+        "min": 25215.5,
+        "median": 25341.22,
+        "p95": 25466.94,
+        "mean": 25341.22,
+        "max": 25466.94
+      }
+    }
+  },
+  "promptAudit": {
+    "baseline": {
+      "promptTokens": 1019,
+      "promptEvalDurationMs": 11627.62,
+      "totalDurationMs": 47681.82,
+      "isValid": true
+    },
+    "compact": {
+      "promptTokens": 506,
+      "promptEvalDurationMs": 10683.77,
+      "totalDurationMs": 42929.23,
+      "isValid": true
+    },
+    "tokenReduction": 513,
+    "percentReduction": 50
+  },
+  "imageResolutionExperiment": {
+    "480px (lower)": {
+      "maxDim": 480,
+      "sizeBytes": 90175,
+      "promptTokens": 1019,
+      "promptEvalDurationMs": 9554.9,
+      "totalDurationMs": 39013.91,
+      "identification": "Oak Leaf (Quercus sp.)",
+      "confidence": "high",
+      "evidence": [
+        "Distinct lobed leaf shape",
+        "Presence of veins within the leaf",
+        "Dark green color"
+      ],
+      "isValid": true
+    },
+    "640px (current baseline)": {
+      "maxDim": 640,
+      "sizeBytes": 169953,
+      "promptTokens": 1019,
+      "promptEvalDurationMs": 8880.97,
+      "totalDurationMs": 36651.88,
+      "identification": "Oak Leaf (Quercus sp.)",
+      "confidence": "high",
+      "evidence": [
+        "Distinct lobed leaf shape",
+        "Presence of water droplets on leaf surface"
+      ],
+      "isValid": true
+    },
+    "800px (higher)": {
+      "maxDim": 800,
+      "sizeBytes": 209777,
+      "promptTokens": 1019,
+      "promptEvalDurationMs": 14469.14,
+      "totalDurationMs": 50402.61,
+      "identification": "Oak Leaf (Quercus)",
+      "confidence": "high",
+      "evidence": [
+        "Distinct lobed leaf shape",
+        "Glossy green surface",
+        "Presence of water droplets"
+      ],
+      "isValid": true
+    }
+  },
+  "structuredOutputExperiment": {
+    "jsonMode": {
+      "totalDurationMs": 51453.43,
+      "generationDurationMs": 39968.71,
+      "outputTokens": 343,
+      "isValid": true,
+      "usedRescue": false
+    },
+    "jsonSchemaMode": {
+      "totalDurationMs": 35682.16,
+      "generationDurationMs": 35168.23,
+      "outputTokens": 315,
+      "isValid": true,
+      "usedRescue": false
+    }
+  }
+}

@@ -1,11 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { OutdoorSession as SessionType, GeoPoint, SessionStats } from '@/types/trail';
-import { geoManager, GeoTrackingError } from '@/lib/geolocation';
-import { calculateTrackDistance } from '@/lib/distance';
+import React from 'react';
+import type { OutdoorSession as SessionType } from '@/types/trail';
 import ExplorationScore from './ExplorationScore';
-import { Play, Pause, Square, MapPin, Clock, Footprints, AlertTriangle, Sparkles } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Square,
+  MapPin,
+  Clock,
+  Footprints,
+  AlertTriangle,
+  Sparkles,
+  CheckCircle2,
+} from 'lucide-react';
+import { useSession } from '@/context/SessionContext';
 
 interface OutdoorSessionProps {
   initialSession?: SessionType | null;
@@ -15,120 +24,51 @@ interface OutdoorSessionProps {
 }
 
 export default function OutdoorSession({
-  initialSession,
   onSessionComplete,
-  observationsCount = 0,
-  completedChallengesCount = 0,
-}: OutdoorSessionProps) {
-  const [status, setStatus] = useState<SessionType['status']>(
-    initialSession?.status || 'idle'
-  );
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(
-    initialSession?.stats.elapsedSeconds || 0
-  );
-  const [trackPoints, setTrackPoints] = useState<GeoPoint[]>(
-    initialSession?.trackPoints || []
-  );
-  const [distanceMeters, setDistanceMeters] = useState<number>(
-    initialSession?.stats.totalDistanceMeters || 0
-  );
-  const [geoError, setGeoError] = useState<string | null>(null);
-
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const stopGeoRef = useRef<(() => void) | null>(null);
-
-  // Stop all timers and watchers cleanly
-  const teardownResources = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    if (stopGeoRef.current) {
-      stopGeoRef.current();
-      stopGeoRef.current = null;
-    }
-    geoManager.stopTracking();
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      teardownResources();
-    };
-  }, [teardownResources]);
-
-  // Handle incoming geolocation coordinates
-  const handleGeoPoint = useCallback((newPoint: GeoPoint) => {
-    setTrackPoints((prev) => {
-      const updated = [...prev, newPoint];
-      const newDistance = calculateTrackDistance(updated);
-      setDistanceMeters(newDistance);
-      return updated;
-    });
-    setGeoError(null);
-  }, []);
-
-  const handleGeoError = useCallback((err: GeoTrackingError) => {
-    setGeoError(err.message);
-  }, []);
+}: OutdoorSessionProps = {}) {
+  const {
+    status,
+    elapsedSeconds,
+    totalDistanceMeters,
+    trackPoints,
+    observations,
+    challenges,
+    observationsCount,
+    completedChallengesCount,
+    currentStats,
+    geoError,
+    startSession,
+    pauseSession,
+    resumeSession,
+    endSession,
+    resetSession,
+  } = useSession();
 
   // Start / Resume session
   const handleStartOrResume = () => {
-    teardownResources();
-    setStatus('active');
-    setGeoError(null);
-
-    // Start timer interval
-    timerRef.current = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-
-    // Start geolocation tracking
-    stopGeoRef.current = geoManager.startTracking({
-      onPoint: handleGeoPoint,
-      onError: handleGeoError,
-    });
+    if (status === 'paused') {
+      resumeSession();
+    } else {
+      startSession();
+    }
   };
 
   // Pause session
   const handlePause = () => {
-    teardownResources();
-    setStatus('paused');
+    pauseSession();
   };
 
   // End session
   const handleEnd = () => {
-    teardownResources();
-    setStatus('completed');
-
-    const completedSession: SessionType = {
-      id: initialSession?.id || 'session-' + Date.now(),
-      startTime: initialSession?.startTime || Date.now() - elapsedSeconds * 1000,
-      endTime: Date.now(),
-      status: 'completed',
-      trackPoints,
-      observations: [],
-      challenges: [],
-      stats: {
-        elapsedSeconds,
-        totalDistanceMeters: distanceMeters,
-        observationsCount,
-        completedChallengesCount,
-        explorationScore: 0, // Calculated dynamically
-      },
-    };
-
-    onSessionComplete?.(completedSession);
+    const completed = endSession();
+    if (completed && onSessionComplete) {
+      onSessionComplete(completed);
+    }
   };
 
   // Reset to new session
   const handleReset = () => {
-    teardownResources();
-    setStatus('idle');
-    setElapsedSeconds(0);
-    setTrackPoints([]);
-    setDistanceMeters(0);
-    setGeoError(null);
+    resetSession();
   };
 
   // Format seconds to mm:ss or hh:mm:ss
@@ -140,14 +80,6 @@ export default function OutdoorSession({
       return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const currentStats: SessionStats = {
-    elapsedSeconds,
-    totalDistanceMeters: distanceMeters,
-    observationsCount,
-    completedChallengesCount,
-    explorationScore: 0,
   };
 
   return (
@@ -162,7 +94,9 @@ export default function OutdoorSession({
                   ? 'bg-emerald-500 animate-pulse'
                   : status === 'paused'
                     ? 'bg-amber-400'
-                    : 'bg-stone-300'
+                    : status === 'completed'
+                      ? 'bg-emerald-600'
+                      : 'bg-stone-300'
               }`}
             />
             <span className="text-xs font-bold uppercase tracking-wider text-foreground">
@@ -199,7 +133,7 @@ export default function OutdoorSession({
               Distance
             </div>
             <div className="text-2xl font-black tracking-tight text-foreground">
-              {(distanceMeters / 1000).toFixed(2)}{' '}
+              {(totalDistanceMeters / 1000).toFixed(2)}{' '}
               <span className="text-xs font-normal text-rock">km</span>
             </div>
           </div>
@@ -251,7 +185,7 @@ export default function OutdoorSession({
               <button
                 type="button"
                 onClick={handlePause}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-surface-muted hover:bg-border-subtle text-foreground border border-border-strong flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-surface-muted hover:bg-border-subtle text-foreground border border-border-strong flex items-center justify-center gap-2 transition-colors"
               >
                 <Pause className="w-4 h-4" />
                 <span>Pause</span>
@@ -259,7 +193,7 @@ export default function OutdoorSession({
               <button
                 type="button"
                 onClick={handleEnd}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 shadow-xs"
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
               >
                 <Square className="w-4 h-4 fill-white" />
                 <span>End Session</span>
@@ -272,7 +206,7 @@ export default function OutdoorSession({
               <button
                 type="button"
                 onClick={handleStartOrResume}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-moss hover:bg-moss-dark text-white flex items-center justify-center gap-2 shadow-xs"
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-moss hover:bg-moss-dark text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>Resume</span>
@@ -280,7 +214,7 @@ export default function OutdoorSession({
               <button
                 type="button"
                 onClick={handleEnd}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 transition-colors"
               >
                 <Square className="w-4 h-4 fill-white" />
                 <span>End Session</span>
@@ -292,7 +226,7 @@ export default function OutdoorSession({
             <button
               type="button"
               onClick={handleReset}
-              className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-moss hover:bg-moss-dark text-white flex items-center justify-center gap-2 shadow-xs"
+              className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-moss hover:bg-moss-dark text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
             >
               <Play className="w-4 h-4 fill-white" />
               <span>Start New Session</span>
@@ -300,6 +234,83 @@ export default function OutdoorSession({
           )}
         </div>
       </div>
+
+      {/* Observations logged during this session */}
+      {observations.length > 0 && (
+        <div className="bg-surface border border-border-subtle rounded-3xl p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+            <span className="text-xs font-bold uppercase tracking-wider text-rock flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-moss" />
+              Session Field Record
+            </span>
+            <span className="text-xs font-semibold text-moss">
+              {observations.length} {observations.length === 1 ? 'Observation' : 'Observations'}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {observations.map((obs, idx) => (
+              <div
+                key={idx}
+                className="p-3 rounded-xl bg-surface-muted border border-border-subtle text-xs flex items-start justify-between gap-3"
+              >
+                <div>
+                  <h4 className="font-bold text-foreground">{obs.identification}</h4>
+                  <p className="text-[11px] text-rock line-clamp-1 mt-0.5">{obs.description}</p>
+                </div>
+                <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-moss-light text-moss-dark">
+                  {obs.confidence}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Challenges in this session */}
+      {challenges.length > 0 && (
+        <div className="bg-surface border border-border-subtle rounded-3xl p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+            <span className="text-xs font-bold uppercase tracking-wider text-rock flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-moss" />
+              Field Challenges
+            </span>
+            <span className="text-xs font-semibold text-moss">
+              {completedChallengesCount} of {challenges.length} Completed
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {challenges.map((c) => (
+              <div
+                key={c.id}
+                className="p-3 rounded-xl bg-surface-muted border border-border-subtle text-xs flex items-center justify-between gap-3"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    {c.status === 'completed' ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                    )}
+                    <h4 className="font-bold text-foreground">{c.title}</h4>
+                  </div>
+                  <p className="text-[11px] text-rock line-clamp-1 mt-0.5 pl-5">{c.description}</p>
+                </div>
+                <span
+                  className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    c.status === 'completed'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {c.status === 'completed' ? `+${c.points} pts` : c.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Exploration Score Display */}
       <ExplorationScore stats={currentStats} />

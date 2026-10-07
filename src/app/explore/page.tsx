@@ -1,17 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CameraCapture from '@/components/CameraCapture';
 import AIResult from '@/components/AIResult';
-import type { AIAnalysisResult, OutdoorChallenge } from '@/types/trail';
+import type { AIAnalysisResult } from '@/types/trail';
 import { RefreshCw, AlertCircle, Navigation } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from '@/context/SessionContext';
 
 export default function ExplorePage() {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<AIAnalysisResult | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [activeChallenge, setActiveChallenge] = useState<OutdoorChallenge | null>(null);
+
+  useEffect(() => {
+    // Non-blocking background model warmup when the user enters Explore mode
+    fetch('/api/health?warmup=true', { cache: 'no-store' }).catch(() => {
+      // Warmup is best-effort; silently ignore network or abort errors
+    });
+  }, []);
+
+  const {
+    recordObservation,
+    activeChallenge,
+    startChallenge,
+    completeChallenge,
+    skipChallenge,
+    observationsCount,
+    completedChallengesCount,
+    isActive,
+  } = useSession();
 
   const handleCapture = async (base64Image: string) => {
     setIsAnalyzing(true);
@@ -39,17 +57,8 @@ export default function ExplorePage() {
       const data = (await response.json()) as AIAnalysisResult;
       setAnalysisResult(data);
 
-      // Initialize challenge item
-      const initialChallenge: OutdoorChallenge = {
-        id: 'challenge-' + Date.now(),
-        title: 'Outdoor Field Challenge',
-        description: data.challenge,
-        estimatedDuration: '2–5 mins',
-        difficulty: 'moderate',
-        status: 'pending',
-        points: 15,
-      };
-      setActiveChallenge(initialChallenge);
+      // Register observation and generate challenge in active session
+      recordObservation(data);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to analyze observation';
       setAnalysisError(message);
@@ -59,37 +68,20 @@ export default function ExplorePage() {
   };
 
   const handleChallengeStart = (challengeId: string) => {
-    if (activeChallenge && activeChallenge.id === challengeId) {
-      setActiveChallenge({
-        ...activeChallenge,
-        status: 'active',
-      });
-    }
+    startChallenge(challengeId);
   };
 
   const handleChallengeComplete = (challengeId: string) => {
-    if (activeChallenge && activeChallenge.id === challengeId) {
-      setActiveChallenge({
-        ...activeChallenge,
-        status: 'completed',
-        completedAt: Date.now(),
-      });
-    }
+    completeChallenge(challengeId);
   };
 
   const handleChallengeSkip = (challengeId: string) => {
-    if (activeChallenge && activeChallenge.id === challengeId) {
-      setActiveChallenge({
-        ...activeChallenge,
-        status: 'skipped',
-      });
-    }
+    skipChallenge(challengeId);
   };
 
   const handleReset = () => {
     setAnalysisResult(null);
     setAnalysisError(null);
-    setActiveChallenge(null);
   };
 
   return (
@@ -110,7 +102,15 @@ export default function ExplorePage() {
           className="inline-flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold bg-surface-muted hover:bg-border-subtle text-foreground border border-border-subtle transition-colors"
         >
           <Navigation className="w-3.5 h-3.5 text-moss" />
-          <span>Active Session</span>
+          <span>
+            {completedChallengesCount > 0
+              ? `Session (${completedChallengesCount} completed)`
+              : observationsCount > 0
+                ? `Session (${observationsCount} observed)`
+                : isActive
+                  ? 'Session (Tracking)'
+                  : 'Active Session'}
+          </span>
         </Link>
       </div>
 
