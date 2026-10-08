@@ -10,7 +10,10 @@ import {
   HelpCircle,
   Cpu,
   Sparkles,
+  Compass,
 } from 'lucide-react';
+import { FieldObservatory } from './observatory/FieldObservatory';
+import { useSession } from '@/context/SessionContext';
 
 interface AIResultProps {
   result: AIAnalysisResult;
@@ -31,6 +34,9 @@ export default function AIResult({
   activeChallenge,
   onNewObservation,
 }: AIResultProps) {
+  const [isObservatoryOpen, setIsObservatoryOpen] = React.useState(false);
+  const { observations } = useSession();
+
   // Confidence badge helpers
   const confidenceConfig = {
     high: {
@@ -160,6 +166,44 @@ export default function AIResult({
             <p className="text-sm sm:text-base leading-relaxed text-stone-600 max-w-prose font-sans">
               {result.description}
             </p>
+
+            {/* Field Observatory Interactive Trigger */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setIsObservatoryOpen(!isObservatoryOpen)}
+                className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-[#F4F0E6] border border-[#B88B2A]/40 text-[#19211B] hover:bg-[#EFEADF] transition-all shadow-2xs group"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 rounded-xl bg-[#B88B2A]/15 text-[#B88B2A] group-hover:scale-105 transition-transform">
+                    <Compass className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-xs sm:text-sm font-semibold font-serif text-[#19211B]">
+                      {isObservatoryOpen ? 'Close Field Observatory' : 'Open Field Observatory'}
+                    </div>
+                    <div className="text-[11px] text-[#736B5E]">
+                      Spatial specimen anchor, evidence orbits, & quality rings
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#B88B2A] bg-white/80 px-2.5 py-1 rounded-full border border-[#B88B2A]/20">
+                  {isObservatoryOpen ? 'Active' : 'Inspect 3D'}
+                </span>
+              </button>
+            </div>
+
+            {/* Field Observatory Active Layer */}
+            {isObservatoryOpen && (
+              <div className="pt-2 animate-fade-in">
+                <FieldObservatory
+                  analysis={result}
+                  sessionObservations={observations}
+                  capturedImageUrl={capturedImage || undefined}
+                  onStartMission={() => onChallengeStart?.(challengeItem.id)}
+                />
+              </div>
+            )}
           </div>
 
           {/* 3. Observed Visual Clues (Clean editorial list with 01, 02, 03) */}

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import FieldDetailGallery from '@/components/FieldDetailGallery';
 import StickyFieldBar from '@/components/StickyFieldBar';
+import HeroObservatoryWindow from '@/components/observatory/HeroObservatoryWindow';
 
 export default function HomePage() {
   const exampleMissions = [
@@ -129,42 +130,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Column: Naturalist Specimen Photographic Frame */}
+          {/* Right Column: Naturalist Specimen & Field Observatory Window */}
           <div className="lg:col-span-5 relative">
-            <div className="relative mx-auto max-w-sm sm:max-w-md lg:max-w-none aspect-4/5 rounded-3xl overflow-hidden bg-stone-900 border border-stone-300/80 shadow-xl group">
-              <Image
-                src="/samples/oak_leaf_optimized.jpg"
-                alt="Quercus robur leaf observation on mossy forest floor"
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 420px"
-                className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
-              />
-
-              {/* Gradient scrim */}
-              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
-
-              {/* Specimen Tag */}
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-stone-200 shadow-xs">
-                <span className="text-[10px] tracking-widest uppercase font-semibold text-stone-800 font-sans">
-                  SPECIMEN NO. 01 · QUERCUS ROBUR
-                </span>
-              </div>
-
-              {/* Lower Photographic Metadata */}
-              <div className="absolute bottom-5 left-5 right-5 text-white">
-                <span className="text-[10px] uppercase tracking-widest text-emerald-300 font-medium block mb-1">
-                  FIELD OBSERVATION
-                </span>
-                <p className="text-lg font-serif italic text-white/95 leading-snug">
-                  &ldquo;Sinuses deeply lobed to harvest sunlight in the lower canopy.&rdquo;
-                </p>
-                <div className="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between text-[11px] text-stone-300 font-mono">
-                  <span>LOCAL GEMMA 3 4B</span>
-                  <span>94/100 QUALITY</span>
-                </div>
-              </div>
-            </div>
+            <HeroObservatoryWindow />
           </div>
         </div>
 

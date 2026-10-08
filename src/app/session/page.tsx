@@ -6,6 +6,7 @@ import type { OutdoorSession as SessionType } from '@/types/trail';
 import Link from 'next/link';
 import { Sparkles, EyeOff, Compass, Play } from 'lucide-react';
 import { useSession } from '@/context/SessionContext';
+import { FieldConstellationView } from '@/components/observatory/FieldConstellationView';
 
 export default function SessionPage() {
   const [completedSessions, setCompletedSessions] = useState<SessionType[]>([]);
@@ -14,6 +15,7 @@ export default function SessionPage() {
     observationsCount,
     completedChallengesCount,
     elapsedSeconds,
+    observations,
     startSession,
   } = useSession();
 
@@ -94,9 +96,16 @@ export default function SessionPage() {
             </Link>
           </div>
         </div>
-      ) : (
-        /* Primary Session Manager */
+      ) : null}
+
+      {/* Primary Session Manager */}
+      {!hasNoActiveSession && (
         <OutdoorSession onSessionComplete={handleSessionComplete} />
+      )}
+
+      {/* Field Constellation Discovery Graph (Living Session Memory) */}
+      {observations.length > 0 && (
+        <FieldConstellationView observations={observations} />
       )}
 
       {/* History of Completed Sessions (Local Session state) */}

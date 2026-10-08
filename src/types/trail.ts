@@ -60,6 +60,15 @@ export interface MissionQualityReport {
   issues: MissionQualityIssue[];
 }
 
+export interface FieldComparison {
+  leftSubject: string;
+  rightSubject: string;
+  sharedFeatures: string[];
+  differences: string[];
+  uncertainty: string[];
+  recommendedObservation: string;
+}
+
 export interface AIAnalysisResult {
   identification: string;
   confidence: AIConfidence;
@@ -73,6 +82,7 @@ export interface AIAnalysisResult {
   inferenceDurationMs?: number;
   telemetry?: InferenceTelemetry;
   qualityReport?: MissionQualityReport; // M4: Deterministic quality evaluation
+  comparison?: FieldComparison; // Field Twin comparison result
 }
 
 export type ChallengeDifficulty = 'easy' | 'moderate' | 'curious';

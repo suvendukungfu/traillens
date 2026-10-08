@@ -41,7 +41,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg)](https://nextjs.org/)
 [![Ollama](https://img.shields.io/badge/Ollama-Local_Inference-orange.svg)](https://ollama.com/)
 [![Model](https://img.shields.io/badge/Model-Google_Gemma_3_4B-green.svg)](https://huggingface.co/google/gemma-3-4b-it)
-[![Tests](https://img.shields.io/badge/Tests-100%2F100_Passing-emerald.svg)](docs/evaluation.md)
+[![Tests](https://img.shields.io/badge/Tests-109%2F109_Passing-emerald.svg)](docs/evaluation.md)
 [![License](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 
 ---
@@ -159,6 +159,32 @@ flowchart LR
     EXP --> SESS
     SESS --> POC
 ```
+
+---
+
+## 🌌 The Field Observatory
+
+> **"The 3D scene is data."** TrailLens turns local Gemma 3 4B’s visual reasoning into an interactive spatial field instrument. It makes the invisible morphology and quality evaluation tangible without distracting from the real-world outdoor mission.
+
+```mermaid
+flowchart TD
+    GEM["Gemma 3 4B Analysis"] --> ADAPT["ObservatoryDataAdapter"]
+    ADAPT --> VM["ObservatoryViewModel"]
+    VM --> R3D["3D WebGL Instrument (Three.js)"]
+    VM --> R2D["2D Naturalist Plate (SVG Fallback)"]
+    R3D --> POCKET["Phone Down / Pocket Mode"]
+    R2D --> POCKET
+```
+
+### Key Spatial Dimensions
+
+1. **Specimen Anchor:** An abstract geometric representation (botanical leaf, ridged bark, radial flower, faceted stone, or spiral cone) deterministically mapped from Gemma's taxonomic description. *(Abstract field representation, not a 3D scan).*
+2. **Evidence Nodes:** Visual clue waypoints (e.g., "lobed margins", "central vein") orbiting the specimen with interactive text inspectors.
+3. **Quality Rings:** 5 concentric brass and stone orbital rings mapped 1:1 to TrailLens's deterministic Mission Quality rubric (Grounding, Specificity, Safety, Executability, Outdoor Value).
+4. **Mission Orbit & Waypoints:** FieldMission steps mapped as physical spatial waypoints (01 → 02 → 03) communicating the outdoor assignment before pocketing the phone.
+5. **Field Twin (Comparative Morphology):** Compare a second specimen against the first using local Gemma multimodal inference (`/api/compare`). Renders a spatial morphology bridge highlighting shared features vs differences.
+6. **Field Constellation:** Multi-observation session graph showing spatial connections between specimens discovered during the current outdoor outing.
+7. **Progressive Enhancement:** 100% functional 2D SVG fallback plate for low-power devices, missing WebGL, or users with `prefers-reduced-motion`. Detailed specs in [`docs/observatory.md`](docs/observatory.md).
 
 ---
 
