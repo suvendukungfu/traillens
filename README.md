@@ -19,7 +19,7 @@ Most modern mobile apps and AI tools are engineered to maximize screen retention
 **TrailLens is deliberately engineered for the opposite:**  
 The screen is a brief, tactical bridge to the physical world—**never the destination**.
 
-```
+```text
                    USER GOES OUTSIDE
                           ↓
                   CAPTURES AN IMAGE
@@ -57,7 +57,7 @@ The screen is a brief, tactical bridge to the physical world—**never the desti
 
 TrailLens enforces strict architectural boundaries:
 
-```
+```text
 [Client Browser]
   ├── Field Camera UI (MediaDevices API / HTML5 Canvas Downscaling)
   ├── Field Guide Display (Identification, Observed Clues, Challenges)
@@ -84,10 +84,12 @@ TrailLens enforces strict architectural boundaries:
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
+
 - **Node.js** 20+ (Node v25+ supported)
 - **Ollama** installed locally ([ollama.com](https://ollama.com))
 
 ### 2. Pull the Gemma 3 4B Multimodal Model
+
 ```bash
 # Pull Google Gemma 3 4B into your local Ollama instance
 ollama pull gemma3:4b
@@ -97,6 +99,7 @@ ollama list
 ```
 
 ### 3. Clone and Configure
+
 ```bash
 git clone https://github.com/your-username/triallens.git
 cd triallens
@@ -112,6 +115,7 @@ OLLAMA_MODEL=gemma3:4b
 ```
 
 ### 4. Install Dependencies & Run
+
 ```bash
 npm install
 npm run dev
@@ -137,6 +141,7 @@ npm run build
 ```
 
 ### Test Suite Highlights
+
 - **Geodesic Engine (`src/lib/distance.test.ts`):** Verifies Haversine calculations against known geographic coordinates (e.g., Paris to London, equator boundaries, identical coordinates, antipodal points).
 - **Geolocation Lifecycle (`src/lib/geolocation.test.ts`):** Guarantees that `stopTracking()` cleans up active watcher IDs and unhooks callback references.
 - **Payload & Output Validation (`src/lib/validation.test.ts`):** Verifies base64 payload size checks, MIME type extraction, and schema fallback recovery for missing LLM attributes.

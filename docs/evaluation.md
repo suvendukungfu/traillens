@@ -403,13 +403,45 @@ To maintain rigorous scientific and engineering integrity, four distinct concept
 
 The rubric evaluates five orthogonal dimensions ($0–20$ points each, Total $= 100$, Passing $\ge 14/\text{dimension}$ and Total $\ge 70$):
 
-| Dimension | Range | Passing | What It Measures | Deterministic Rules & Penalties |
-| :--- | :---: | :---: | :--- | :--- |
-| **1. Grounding** | 0–20 | $\ge 14$ | Connection to analyzed natural subject | • Irrelevant domain / sensors (barometric, humidity, pressure, Wi-Fi): $-12$ pts [ERROR]<br>• Complete vocabulary disconnect from specimen ID/description: $-10$ pts [ERROR]<br>• Target lacks anatomical/botanical morphology reference: $-4$ pts [WARNING] |
-| **2. Specificity** | 0–20 | $\ge 14$ | Operational instructions over vague filler | • Vague clichés ("explore the area", "look around", "observe nature"): $-10$ pts [ERROR]<br>• Missing operational action verbs: $-4$ pts [WARNING]<br>• Missing observable property: $-4$ pts [WARNING]<br>• Unbounded scope ("anywhere in forest"): $-3$ pts [WARNING] |
-| **3. Safety** | 0–20 | $\ge 14$ | Physical hazard prevention & Leave No Trace | • Violation of authoritative challenge safety gate (foraging, toxic fungi, steep drop-offs): $-20$ pts (Score $= 0$) [ERROR]<br>• Missing explicit safety constraint: $-4$ pts [WARNING] |
-| **4. Executability** | 0–20 | $\ge 14$ | Reasonable outdoor completion without gear | • Duration outside $[120\text{s}, 300\text{s}]$: $-8$ pts [ERROR]<br>• Steps count outside $[1, 4]$: $-8$ pts [ERROR]<br>• Trivial or empty success criteria ($< 15$ chars): $-8$ pts [ERROR]<br>• Specialized lab equipment requirement (microscope, scale): $-8$ pts [ERROR] |
-| **5. Outdoor Value** | 0–20 | $\ge 14$ | Physical-world observation vs screen memorization | • Screen-only / cognitive-only task ("stare at phone", "read description"): $-14$ pts [ERROR]<br>• Missing physical disengagement / movement indicator: $-4$ pts [WARNING] |
+**1. Grounding (0–20 pts, passing ≥ 14)** — Connection to the analyzed natural subject.
+
+| Rule | Severity | Penalty |
+| :--- | :---: | :---: |
+| Irrelevant domain / sensors (barometric, humidity, pressure, Wi-Fi) | ERROR | −12 pts |
+| Complete vocabulary disconnect from specimen ID/description | ERROR | −10 pts |
+| Target lacks anatomical/botanical morphology reference | WARNING | −4 pts |
+
+**2. Specificity (0–20 pts, passing ≥ 14)** — Operational instructions over vague filler.
+
+| Rule | Severity | Penalty |
+| :--- | :---: | :---: |
+| Vague clichés ("explore the area", "look around", "observe nature") | ERROR | −10 pts |
+| Missing operational action verbs | WARNING | −4 pts |
+| Missing observable property | WARNING | −4 pts |
+| Unbounded scope ("anywhere in forest") | WARNING | −3 pts |
+
+**3. Safety (0–20 pts, passing ≥ 14)** — Physical hazard prevention & Leave No Trace.
+
+| Rule | Severity | Penalty |
+| :--- | :---: | :---: |
+| Violation of production safety gate (foraging, toxic fungi, steep drop-offs) | ERROR | Score = 0 |
+| Missing explicit safety constraint | WARNING | −4 pts |
+
+**4. Executability (0–20 pts, passing ≥ 14)** — Reasonable outdoor completion without gear.
+
+| Rule | Severity | Penalty |
+| :--- | :---: | :---: |
+| Duration outside \[120 s, 300 s\] | ERROR | −8 pts |
+| Step count outside \[1, 4\] | ERROR | −8 pts |
+| Trivial or empty success criteria (< 15 chars) | ERROR | −8 pts |
+| Specialized lab equipment requirement (microscope, scale) | ERROR | −8 pts |
+
+**5. Outdoor Value (0–20 pts, passing ≥ 14)** — Physical-world observation vs screen memorization.
+
+| Rule | Severity | Penalty |
+| :--- | :---: | :---: |
+| Screen-only / cognitive-only task ("stare at phone", "read description") | ERROR | −14 pts |
+| Missing physical disengagement / movement indicator | WARNING | −4 pts |
 
 ---
 
@@ -446,6 +478,7 @@ node scripts/evaluate-mission-quality.mjs
 #### Analysis of Weakest Dimension: Specificity
 
 Specificity had the lowest pass rate ($60.0\%$) and lowest average score ($14.6/20$) across the fixture suite. This reflects the intentional sensitivity of the rubric:
+
 - Generic missions with vague fillers (`explore the area`, `look around`) are penalized heavily ($-10$ pts).
 - Failing fixtures that lack concrete morphological attributes (e.g., Fixture B, Fixture G, and Fixture F) trigger cumulative deductions for lacking operational verbs and observable properties.
 
@@ -468,8 +501,9 @@ Specificity had the lowest pass rate ($60.0\%$) and lowest average score ($14.6/
 ### 8.5 UI Integration & User Experience
 
 In accordance with product thesis:
+
 - Normal outdoor explorers are **not** presented with raw rubric scores or analytics graphs.
-- High-quality missions display a subtle trust indicator badge: `Field-tested structure` in the `ChallengeCard` header alongside point values.
+- High-quality missions display a subtle `FIELD-READY` trust indicator badge in the `ChallengeCard` header alongside point values.
 - Internal pipelines attach `qualityReport?: MissionQualityReport` to `AIAnalysisResult` for system auditability, debugging, and offline evaluation.
 
 ---
