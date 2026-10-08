@@ -1,120 +1,247 @@
 # TrailLens Architecture & Technical Specification
 
-> **Project Name:** TrailLens  
-> **Tagline:** Look beyond the screen.  
-> **Hacktoberfest 2026 Track:** Open-Source AI Challenge — Week 1 (*Touch Grass*)  
-> **Target Category:** Best Use of Gemma  
+> **Project Name:** TrailLens
+> **Tagline:** Look beyond the screen.
+> **Hacktoberfest 2026 Track:** Open-Source AI Challenge — Week 1 (*Touch Grass*)
+> **Target Category:** Best Use of Gemma
+> **Architecture Pattern:** 3-Tier Decoupled Local-First AI Engine
 
 ---
 
 ## 1. Architectural Philosophy & Product Loop
 
-TrailLens is an outdoor-first AI companion designed with a single contrarian thesis: **the screen is a temporary bridge, never the destination**.
+TrailLens is an outdoor-first AI companion engineered around a single contrarian thesis: **the screen is a temporary bridge, never the destination**.
 
-Modern consumer mobile applications prioritize engagement loops, infinite feeds, and persistent screen retention. TrailLens inverts this pattern by using local, open-weight multimodal artificial intelligence to rapidly interpret nature observations and immediately challenge the user to put their device away.
+Modern consumer mobile applications prioritize engagement loops, infinite feeds, and persistent screen retention. TrailLens inverts this paradigm by using local, open-weight multimodal artificial intelligence to rapidly interpret nature observations and immediately command the explorer to put their device away.
 
 ```text
-       [USER ENTERS OUTDOORS]
+              TRAILLENS
+         LOOK BEYOND THE SCREEN
+
+                 SEE
                   │
                   ▼
-       [CAPTURE SINGLE OBSERVATION]
-       (Live Camera or Photo Upload)
-                  │
-                  ▼
-       [CLIENT DOWNSCALING & SANITIZATION]
-       (Canvas resize to ≤640px, JPEG 0.80)
-                  │
-                  ▼
-       [SERVER-SIDE ROUTE HANDLER]
-       (POST /api/analyze with strict Zod validation)
-                  │
-                  ▼
-       [LOCAL OLLAMA INFERENCE ENGINE]
-       (Google Gemma 3 4B Multimodal via Loopback HTTP)
-                  │
-                  ▼
-       [STRUCTURED FIELD GUIDE EXTRACTION]
-       (Identification, Clues, Description, Safety)
-                  │
-                  ▼
-       [FIELD CHALLENGE GENERATED]
-       ("Put phone in pocket for 2-5 minutes")
-                  │
-                  ▼
-       [USER EXPLORES PHYSICAL ENVIRONMENT]
-       (Background Geolocation & Haversine Distance)
-                  │
-                  ▼
-       [SESSION COMPLETION & EXPLORATION SCORE]
+        ┌──────────────────┐
+        │   GEMMA 3 4B     │
+        │  LOCAL INFERENCE │
+        └────────┬─────────┘
+                 │
+                 ▼
+        ┌──────────────────┐
+        │  FIELD MISSION   │
+        │ QUALITY + SAFETY │
+        └────────┬─────────┘
+                 │
+                 ▼
+             PHONE DOWN
+                 │
+                 ▼
+          REAL WORLD
+          EXPLORATION
+                 │
+                 ▼
+            REFLECTION
+                 │
+                 ▼
+           FIELD RECORD
 ```
 
 ---
 
-## 2. System Architecture & Boundaries
+## 2. System Architecture & C4 Container Model
 
-The system is partitioned into three strictly decoupled layers: Client Browser, Next.js Server Runtime, and Local Ollama Inference Engine.
+The architecture is partitioned into three strictly decoupled runtime containers: **Client Browser Runtime**, **Next.js Server Runtime**, and the **Local Ollama Daemon**.
 
-```text
-+───────────────────────────────────────────────────────────────────────────+
-│                            1. CLIENT BROWSER                              │
-│                                                                           │
-│  ┌───────────────────────┐ ┌──────────────────────┐ ┌──────────────────┐  │
-│  │   Field Camera UI     │ │  Field Guide Card    │ │  Outdoor Session │  │
-│  │  (MediaDevices API /  │ │ (Identification,     │ │ (GPS Watcher,    │  │
-│  │   HTML5 Canvas Scale) │ │  Evidence, Challenge)│ │  Haversine HUD)  │  │
-│  └───────────┬───────────┘ └──────────┬───────────┘ └────────┬─────────┘  │
-│              │                        ▲                      │            │
-│              │ Base64 Image (POST)    │ Structured JSON      │ Local GPS  │
-│              ▼                        │ Response             │ Fixes      │
-+──────────────┼────────────────────────┼──────────────────────┼────────────+
-               │                        │                      │
-               ▼                        │                      ▼
-+───────────────────────────────────────┴──────────────────────┴────────────+
-│                        2. NEXT.JS SERVER RUNTIME                          │
-│                                                                           │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │ Route Handler: POST /api/analyze                                    │  │
-│  │  - JSON payload validation (analyzeRequestSchema)                   │  │
-│  │  - MIME type verification (JPEG, PNG, WebP)                         │  │
-│  │  - Safe timing diagnostics (no raw base64 or secrets in logs)       │  │
-│  └──────────────────────────────────┬──────────────────────────────────┘  │
-│                                     │                                     │
-│  ┌──────────────────────────────────▼──────────────────────────────────┐  │
-│  │ Ollama Client Adapter (src/lib/ollama.ts)                           │  │
-│  │  - Loopback endpoint: http://127.0.0.1:11434                        │  │
-│  │  - Configurable model: gemma3:4b (via OLLAMA_MODEL)                 │  │
-│  │  - AbortController timeout guard (180s limit)                       │  │
-│  │  - Strict JSON sanitation & rescue fallback parser                  │  │
-│  └──────────────────────────────────┬──────────────────────────────────┘  │
-│                                     │                                     │
-+─────────────────────────────────────┼─────────────────────────────────────+
-                                      │
-                                      ▼ Internal Loopback HTTP (127.0.0.1)
-+───────────────────────────────────────────────────────────────────────────+
-│                     3. LOCAL OLLAMA INFERENCE ENGINE                      │
-│                                                                           │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │ Google Gemma 3 4B (Multimodal GGUF / Q4_K_M)                        │  │
-│  │  - Visual reasoning over botanical, geological, & zoological traits │  │
-│  │  - Structured field guide schema emission                           │  │
-│  │  - Conservation & non-edibility safety guardrails                   │  │
-│  └─────────────────────────────────────────────────────────────────────┘  │
-+───────────────────────────────────────────────────────────────────────────+
+### 2.1 System Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Browser ["1. Client Browser Runtime (Ephemeral State)"]
+        direction TB
+        CAM["Field Camera UI<br/>(MediaDevices / Canvas Scale)"]
+        EXP["Editorial Explore UI<br/>(Viewfinder + Dossier)"]
+        SESS["SessionContext Provider<br/>(GPS Watcher + Haversine)"]
+        POC["Pocket Mode Modal<br/>(Tactile Timer + HUD)"]
+        REF["Sensory Reflection HUD<br/>(Sight, Sound, Texture)"]
+        REC["Field Record Dossier<br/>(Immutable Walk Summary)"]
+
+        CAM --> EXP
+        EXP --> SESS
+        SESS --> POC
+        POC --> REF
+        REF --> REC
+    end
+
+    subgraph Server ["2. Next.js Server Runtime (Stateless Gateway)"]
+        direction TB
+        API["POST /api/analyze<br/>Route Handler"]
+        VAL["Zod Payload Validation<br/>(MIME & Base64 Guard)"]
+        ADAPT["Ollama Client Adapter<br/>(Timeout, Keep-Alive, Rescue)"]
+        SAFE["Deterministic Safety Gate<br/>(Challenge Interceptor)"]
+        QUAL["Mission Quality Rubric<br/>(5-Dimension Evaluator)"]
+
+        API --> VAL
+        VAL --> ADAPT
+        ADAPT --> SAFE
+        SAFE --> QUAL
+    end
+
+    subgraph Daemon ["3. Local Ollama Engine (Hardware Isolated)"]
+        direction TB
+        OLL["Ollama Daemon<br/>(127.0.0.1:11434)"]
+        GEM["Google Gemma 3 4B<br/>(gemma3:4b-it Q4_K_M)"]
+
+        OLL --> GEM
+    end
+
+    EXP ==>|HTTP POST JSON (Base64)| API
+    ADAPT ==>|HTTP Loopback| OLL
+    GEM ==>|Structured JSON| ADAPT
+    QUAL ==>|Sanitized FieldMission Result| EXP
+
+    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef server fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef daemon fill:#18181b,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
+
+    class CAM,EXP,SESS,POC,REF,REC client;
+    class API,VAL,ADAPT,SAFE,QUAL server;
+    class OLL,GEM daemon;
+```
+
+---
+
+## 3. End-to-End Sequence Diagram
+
+The interaction lifecycle begins with a tactile specimen capture and cleanly resolves through safety and mission quality evaluation before activating the outdoor immersion loop.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Explorer as User / Explorer
+    participant Browser as Browser UI
+    participant Canvas as HTML5 Canvas
+    participant Next as Next.js (/api/analyze)
+    participant Ollama as Ollama (127.0.0.1)
+    participant Gemma as Gemma 3 4B
+
+    Explorer->>Browser: Frame specimen & tap capture
+    Browser->>Canvas: Downscale frame (≤512px, JPEG 0.80)
+    Canvas-->>Browser: Optimized Base64 payload
+    Browser->>Next: POST /api/analyze { image, mimeType }
+
+    activate Next
+    Next->>Next: Zod validate schema & payload bounds
+    Next->>Ollama: POST /api/chat (prompt, format: json_schema, keep_alive: 10m)
+
+    activate Ollama
+    Ollama->>Gemma: Multimodal vision + structured inference
+    activate Gemma
+    Gemma-->>Ollama: Raw FieldMission JSON tokens
+    deactivate Gemma
+    Ollama-->>Next: Raw JSON text response
+    deactivate Ollama
+
+    Next->>Next: Sanitize JSON & parse FieldMission contract
+    Next->>Next: validateChallengeSafety() [Regex Gate]
+    alt Safety Hazard Detected
+        Next->>Next: Log warning & substitute SAFE_CHALLENGE_FALLBACK
+    end
+    Next->>Next: evaluateMissionQuality() [5-Dimension Rubric]
+    Next-->>Browser: HTTP 200 { identification, mission, safety, qualityReport }
+    deactivate Next
+
+    Browser->>Explorer: Render Mission Dossier (FIELD-READY)
+    Explorer->>Browser: Accept Challenge
+    Browser->>Browser: Enter Pocket Mode (Dim screen, start GPS)
+    Explorer->>Explorer: Put phone in pocket & explore 2-5 mins
+```
+
+---
+
+## 4. User Journey & State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: Mount /explore
+    Idle --> ViewfinderReady: Camera Permission Granted
+    ViewfinderReady --> Capturing: Tap Reticle Capture
+    Capturing --> Analyzing: Dispatch POST /api/analyze
+    Analyzing --> MissionReady: Analysis & Safety Gate Pass
+    Analyzing --> Error: Inference Timeout / Validation Fail
+    Error --> ViewfinderReady: Dismiss Error
+
+    MissionReady --> PocketMode: Tap "Accept Mission"
+    PocketMode --> Exploring: Phone Placed in Pocket
+    Exploring --> Reflecting: Return & Tap "I'm Back"
+    Reflecting --> FieldRecord: Log Sights / Sounds / Textures
+    FieldRecord --> ViewfinderReady: Capture Next Specimen
+    FieldRecord --> CompletedSession: Tap "Finish Session"
+    CompletedSession --> [*]
+```
+
+---
+
+## 5. Data Lifecycle & Trust Boundaries
+
+TrailLens is architected with strict, explicit boundaries separating memory scopes, transport layers, and persistence guarantees:
+
+```mermaid
+flowchart TD
+    subgraph ClientMem ["Ephemeral Client Memory (Zero Persistence)"]
+        RAW["Raw WebCam Stream Frames"]
+        GPS["Real-Time Geolocation Fixes (lat/long)"]
+        HUD["In-Memory Distance & Timer Accumulator"]
+        NOTES["User Sensory Reflection Text"]
+    end
+
+    subgraph Transit ["Local Loopback Transit (In-Flight Only)"]
+        IMG["Base64 JPEG (512px Downscaled)"]
+        TOK["Model Chat Tokens"]
+    end
+
+    subgraph ServerMem ["Server Runtime (Stateless)"]
+        ZOD["Zod Schema Interceptor"]
+        GATE["Safety Filter Audit Logs"]
+        RUBRIC["In-Memory Quality Deductions"]
+    end
+
+    subgraph Hardware ["Hardware Daemon"]
+        VRAM["Model Weights & KV Cache (Pinned 10m)"]
+    end
+
+    RAW -->|Downscaled Canvas| IMG
+    IMG -->|HTTP POST| ZOD
+    ZOD -->|Loopback| TOK
+    TOK --> VRAM
+    VRAM --> TOK
+    TOK --> GATE
+    GATE --> RUBRIC
+    RUBRIC -->|Sanitized JSON| ClientMem
+
+    classDef ephemeral fill:#1e293b,stroke:#38bdf8,stroke-width:1px,color:#f8fafc;
+    classDef transit fill:#334155,stroke:#94a3b8,stroke-width:1px,color:#f8fafc;
+    classDef server fill:#064e3b,stroke:#10b981,stroke-width:1px,color:#f8fafc;
+    classDef daemon fill:#451a03,stroke:#f59e0b,stroke-width:1px,color:#f8fafc;
+
+    class RAW,GPS,HUD,NOTES ephemeral;
+    class IMG,TOK transit;
+    class ZOD,GATE,RUBRIC server;
+    class VRAM daemon;
 ```
 
 ### Boundary Guarantees
-
-1. **The browser never communicates with Ollama directly.** All inference flows through `POST /api/analyze` to enforce validation, guard against unconstrained client payloads, and prevent CORS/network exposure.
-2. **Ephemeral Geolocation:** Geolocation coordinates never leave the browser. Coordinates are processed entirely in client memory and discarded upon session completion or navigation.
+1. **The Browser Never Communicates with Ollama Directly:** All requests route through `POST /api/analyze` to enforce schema constraints, guard against payload abuse, and avoid exposing local network ports.
+2. **Ephemeral Geolocation:** Geolocation coordinates are never stored in browser `localStorage`, cookies, or indexedDB, and are never transmitted to any server. When the browser tab closes, all trail traces are erased from memory.
 3. **Zero Third-Party Telemetry:** No external tracking scripts, cloud analytics, or closed API tokens exist in the runtime.
+4. **Air-Gapped Operation:** When running locally, the entire application functions with airplane mode enabled.
 
 ---
 
-## 3. Data Contracts & Type Definitions
+## 6. Data Contracts & Type Definitions
 
-Data contracts are enforced at compile time via TypeScript and at runtime via Zod schemas.
+Domain contracts are enforced at compile time via TypeScript and at runtime via Zod schemas (`src/types/trail.ts` & `src/lib/validation.ts`).
 
-### Primary Domain Types (`src/types/trail.ts`)
+### 6.1 Primary Domain Model (`src/types/trail.ts`)
 
 ```typescript
 export type AIConfidence = 'low' | 'medium' | 'high';
@@ -131,8 +258,8 @@ export interface FieldMission {
   missionType: MissionType;
   title: string;
   target: string;
-  durationSeconds: number; // bounded between 120 and 300
-  steps: string[]; // 1 to 4 steps
+  durationSeconds: number; // Bounded: 120 <= duration <= 300
+  steps: string[];          // Bounded: 1 <= steps <= 4
   successCriteria: string;
   safetyConstraints: string[];
 }
@@ -144,24 +271,11 @@ export interface AIAnalysisResult {
   evidence: string[];
   description: string;
   observation: string;
-  mission?: FieldMission; // Structured source of truth
-  challenge: string; // Presentation projection (backward compatible)
+  mission?: FieldMission;   // Canonical structured contract
+  challenge: string;        // Backward-compatible projection
   safety: string;
   inferenceDurationMs?: number;
-}
-
-export type ChallengeStatus = 'pending' | 'active' | 'completed' | 'skipped';
-
-export interface OutdoorChallenge {
-  id: string;
-  title: string;
-  description: string;
-  estimatedDuration: string;
-  difficulty: 'easy' | 'moderate' | 'curious';
-  status: ChallengeStatus;
-  points: number;
-  completedAt?: number;
-  mission?: FieldMission;
+  qualityReport?: MissionQualityReport;
 }
 
 export interface GeoPoint {
@@ -182,164 +296,75 @@ export interface SessionStats {
 
 ---
 
-## 4. Multimodal AI Integration (Gemma 3 4B)
+## 7. Multimodal AI Integration (Gemma 3 4B)
 
-### Model Selection Rationale
+### 7.1 Model Selection & Resource Footprint
+- **Model:** Google Gemma 3 4B (`gemma3:4b-it`, GGUF Q4_K_M).
+- **Footprint:** ~3.3 GB disk footprint, ~4.3B parameter footprint.
+- **Multimodal Visual Reasoning:** Emits structured morphological clues over botanical cuticles, conifer scales, quartz mineral banding, and lichen crusts.
+- **Memory Residency (`keep_alive`):** Pinned in host unified memory using `keep_alive: '10m'` and `num_ctx: 2048` to prevent multi-second cold load penalties.
 
-- **Model:** `gemma3:4b` (`gemma3:4b-it` multimodal, 4.3B parameters, GGUF Q4_K_M quantization).
-- **Footprint:** ~3.3 GB disk footprint, runs at low latency on modern laptop unified memory (Apple Metal, NVIDIA CUDA, or modern CPU).
-- **Multimodal Competence:** Demonstrates morphological awareness for botanical structures (leaf lobes, waxy cuticles, venation), geological textures (river pebbles, quartz veins), and fungal/lichen growths.
-- **Local-First Independence:** Can execute inference without external internet connectivity when Next.js, Ollama, and model weights reside on the same host machine.
+### 7.2 Structured JSON Schema Generation
+Gemma 3 4B outputs structured JSON conforming to `rawAIAnalysisOutputSchema`. This schema compiles via Zod into standard JSON Schema passed directly in the Ollama request payload (`format: json_schema`).
 
-### Prompt Engineering & Structured Output
-
-The prompt (`src/lib/prompts.ts`) instructs Gemma 3 to act as an offline AI field-experiment engine producing grounded observations and a structured Field Mission Contract:
-
-1. **Identification:** Direct, concise common name.
-2. **Confidence:** Self-reported label (`high`, `medium`, or `low`) emitted as text by the model. It is not a calibrated model probability.
-3. **Uncertainty Reason:** Explicit justification when confidence is medium or low.
-4. **Visual Evidence:** 2 to 4 concrete anatomical or environmental features seen in the photo.
-5. **Description:** Educational background (1–2 sentences).
-6. **Observation:** What surrounding environmental details to inspect.
-7. **Field Mission:** Structured experiment (`missionType`, `target`, `durationSeconds`, `steps`, `successCriteria`, `safetyConstraints`).
-8. **Safety Notice:** Compulsory warning regarding wildlife distance, terrain safety, and strict prohibition on wild foraging/edibility.
-
-#### Structured Output Mechanism (`src/lib/ollama.ts` & `src/lib/validation.ts`)
-
-1. **Ollama JSON Schema Format:** Local Ollama (v0.35.1+) supports passing a JSON Schema object directly through the chat `format` parameter.
-2. **Schema Compilation via Zod 4:** A pure structural schema (`rawAIAnalysisOutputSchema`) is compiled into standard JSON Schema via `z.toJSONSchema()` and passed in the `format` field of the Ollama request payload, guiding token generation to conform to the Field Mission structure.
-3. **Runtime Validation & Transformations:** The model response is validated through `aiAnalysisResultSchema.parse()`, applying Leave No Trace safety sanitization, compiling the deterministic challenge string, and providing fallbacks.
-4. **Resilient Fallback Parser:** If the local daemon drops punctuation or wraps in markdown fences, `sanitizeJsonText` and `attemptJsonRescue` provide robust recovery before throwing.
+```mermaid
+flowchart LR
+    ZOD["rawAIAnalysisOutputSchema<br/>(Zod 4 Definition)"] --> JSON["JSON Schema Object<br/>(z.toJSONSchema())"]
+    JSON --> REQ["Ollama Payload<br/>format: json_schema"]
+    REQ --> GEM["Gemma 3 4B Tokenizer<br/>Grammar Constrained"]
+    GEM --> RES["Structured FieldMission<br/>Guaranteed Valid JSON"]
+```
 
 ---
 
-## 5. Geolocation Engine & Geodesic Calculation
+## 8. Safety Engineering: Two-Layer Defense-in-Depth
 
-### The Haversine Distance Engine (`src/lib/distance.ts`)
+The safety gate operates downstream of the generative model. Generative AI is treated as an untrusted agent regarding physical safety.
 
-Calculates great-circle distance between spherical coordinates on Earth (mean radius $R = 6,371,000$ meters):
+```mermaid
+flowchart TD
+    G["Raw Model Output"] --> L1["Layer 1: Schema Sanitization (src/lib/validation.ts)<br/>Strip Negations & Evaluate Blacklist"]
+    L1 --> CHK1{Hazard Detected?}
+    CHK1 -- Yes --> SUB1["Substitute SAFE_CHALLENGE_FALLBACK"]
+    CHK1 -- No --> L2["Layer 2: API Route Boundary Gate (src/app/api/analyze/route.ts)<br/>validateChallengeSafety()"]
+    SUB1 --> L2
+    L2 --> CHK2{Hazard Detected?}
+    CHK2 -- Yes --> SUB2["Intercept & Substitute Fallback"]
+    CHK2 -- No --> OUT["Approved Safe Mission Emitted to Client"]
+    SUB2 --> OUT
+```
+
+### Safety Categories Intercepted
+1. **Toxic Fungi & Foraging:** Tasting, eating, picking, or tactile handling of mushrooms or unknown berries.
+2. **Terrain Peril:** Commands to approach cliff edges, deep water, waterfalls, steep scree slopes, or off-trail ravines.
+3. **Wildlife Contact:** Touching, feeding, approaching, or cornering wild animals.
+4. **Conservation / Leave No Trace:** Uprooting flora, snapping branches, or disturbing soil habitats.
+
+---
+
+## 9. Geolocation & Geodesic Engine
+
+### Haversine Formula (`src/lib/distance.ts`)
+Calculates the great-circle distance between consecutive GPS coordinates on Earth (mean radius $R = 6,371,000$ meters):
 
 $$a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right)$$
 $$c = 2 \cdot \operatorname{atan2}\left(\sqrt{a}, \sqrt{1-a}\right)$$
 $$d = R \cdot c$$
 
-### Jitter Mitigation
-
-Raw mobile GPS chips experience positional drift when stationary. `calculateTrackDistance` applies one filter:
-
-1. **Displacement Threshold:** A new point closer than $2.0$ meters (default `jitterThresholdMeters`) to the last accepted point is treated as stationary noise and not added to the distance; the last accepted point is kept as the reference.
-
-Invalid coordinates (NaN, non-finite, or out of latitude/longitude bounds) contribute 0 meters. The reported GPS `accuracy` is stored on each `GeoPoint` but is not used for filtering, and there is no speed-based filter.
-
-### Lifecycle & Resource Management (`src/lib/geolocation.ts`)
-
-- The browser watcher (`navigator.geolocation.watchPosition`) is encapsulated within `GeolocationManager` (exported singleton `geoManager`).
-- Whenever a session pauses, completes, or unmounts, `geoManager.stopTracking()` clears the watcher (`clearWatch`) and resets the tracking state.
-- Timer intervals are explicitly tracked via React `useRef` and terminated in `useEffect` cleanup handlers to prevent background memory leaks and battery depletion.
-- *Browser Limitation Note:* Standard web geolocation operates while the application tab remains active. Mobile operating systems may throttle or suspend web timers and geolocation watchers if the browser is backgrounded.
+### Jitter Mitigation & Stationary Noise Filter
+Raw mobile GPS hardware experiences positional drift even while the user is standing still. `calculateTrackDistance` applies a displacement threshold:
+- Any coordinate delta $< 2.0\text{ meters}$ (`jitterThresholdMeters`) from the last accepted coordinate is rejected as noise.
+- Non-finite coordinates (`NaN`, `null`, out-of-bound latitudes/longitudes) contribute 0 meters.
 
 ---
 
-## 6. Security, Privacy, Offline Operation, and Challenge Safety Gate
+## 10. Failure Modes & Recovery Strategies
 
-1. **Local-First Offline Operation:** Inference occurs over loopback `127.0.0.1:11434`. TrailLens executes without internet connectivity when the web application, local Ollama service, and model weights are running locally on the same host machine. (If hosted remotely, network connectivity between client browser and Next.js server is required, but no third-party cloud AI is ever contacted).
-2. **Input Hygiene:** Images uploaded to `/api/analyze` are bounded by strict payload limits (20MB base64 ceiling in Zod) and validated against allowed declared data-URL MIME types (`image/jpeg`, `image/png`, `image/webp`). (Validation inspects the declared data-URL header and payload length rather than performing binary magic-byte decoding).
-3. **Production Challenge Safety Gate (`src/lib/safety/challenge.ts`):** Because wild plant and fungi identification cannot guarantee toxicological safety, a two-layer defense-in-depth safety gate inspects every AI-generated outdoor challenge:
-   - **Layer 1 (Schema Sanitization):** Enforced during Zod parsing (`src/lib/validation.ts`). Negated safety warnings ("do not taste...") are stripped before keyword evaluation so safe instructions are not misflagged, while genuine hazards (foraging, ingestion, tactile contact with toxic specimens, climbing cliffs, deep water) trigger substitution with `SAFE_CHALLENGE_FALLBACK`.
-   - **Layer 2 (API Route Boundary Verification):** Enforced in `src/app/api/analyze/route.ts` prior to returning JSON to the browser, guaranteeing no unsafe challenge can reach the client even if upstream schema processing is bypassed.
-4. **Ephemeral Geolocation:** Geolocation coordinates never leave the browser. Coordinates are processed entirely in client memory and discarded upon session completion or navigation.
-5. **Model Warmup Protection (`GET /api/health?warmup=true`):** Optional non-blocking pre-warmup is guarded by an in-memory 60-second idempotency cooldown and in-flight promise deduplication in `src/lib/ollama.ts`, preventing repeated or concurrent model loading spikes without requiring authentication.
-
----
-
-## 7. Active Session State & Touch-Grass Loop
-
-### Architecture & Data Flow
-
-TrailLens connects field identification (`/explore`) with outdoor tracking (`/session`) via a lightweight, typed in-memory React Context (`src/context/SessionContext.tsx`).
-
-```text
-[Field Camera / Explore Page]
-              │
-              ▼
-    [POST /api/analyze]
-              │
-              ▼
-     [AIAnalysisResult]
-              │
-              ▼
-   [useSession().recordObservation]
-              │
-  ┌───────────┴────────────────────────────────────────┐
-  │         Root Layout SessionProvider                │
-  │  - Status: 'active' (auto-started or manual)       │
-  │  - In-memory Timer Interval (1-second tick)        │
-  │  - In-memory GeolocationManager (GPS watcher)      │
-  │  - Observations Array [AIAnalysisResult, ...]      │
-  │  - Challenges Array [OutdoorChallenge, ...]        │
-  │  - Challenge Completion Deduplication              │
-  │  - Transparent Score Calculation                   │
-  └───────────┬────────────────────────────────────────┘
-              │ Client Navigation (next/link)
-              ▼
-     [/session Page HUD]
-  - Real elapsed duration (live or finished)
-  - Real GPS distance traversed (Haversine km)
-  - Real observation count & field species log
-  - Real completed challenges count & status
-  - Transparent score breakdown
-  - Clean inactive state if no session started
-```
-
-### Key Design Principles
-
-1. **Root Layout In-Memory Persistence:** Because Next.js App Router root layout (`src/app/layout.tsx`) remains mounted during client navigation (`next/link`), `SessionProvider` retains active tracking state without requiring external state management libraries (Redux, Zustand). (State is held in-memory; a hard browser reload or tab close resets the session by design).
-2. **Zero Server Session Telemetry:** Session duration, GPS coordinates, and observations are never transmitted to any database or backend server.
-3. **Pocket Mode UX ("Screen-Shortening"):** After an identification challenge is generated, the UI presents an explicit directive: *"Put your phone away for 2 minutes."* The browser does not claim fake screen-off detection; the user physically explores nature, returns, and taps *"I'm done"*.
-4. **Idempotent Challenge Completion:** Challenges can only be completed once; duplicate clicks or component re-renders do not double count points.
-5. **Honest Inactive State:** Direct visits to `/session` when no session is active display a clear inactive state instead of a fabricated zero-score completion.
-6. **Transparent Exploration Score (`src/components/ExplorationScore.tsx`):**
-   - **Distance:** 1 point per 50 meters walked (`Math.floor(distance / 50)`)
-   - **Time Outside:** 1 point per 60 seconds (`Math.floor(seconds / 60)`)
-   - **Observations:** 10 points per identified specimen
-   - **Challenges:** 15 points per completed field challenge
-
----
-
-## 8. Experimental Colour-Heuristic Spatial Summary Module
-
-### Architectural Purpose & Design Boundaries
-
-To investigate whether coarse spatial context could improve outdoor challenge grounding, an isolated prototype was constructed under `src/lib/vision/segmentation/`. Despite the directory name, it is an **experimental colour-heuristic spatial summary**. It is **not** learned semantic segmentation, instance segmentation, or object detection, and it uses no trained model.
-
-```text
-[Input Image Buffer]
-         │
-         ▼
-[SpatialSegmentationEngine (Sharp resize + fixed RGB thresholds)]
-         │
-         ├── Resize to 128x128 (fit: 'fill'; aspect ratio not preserved)
-         ├── Per-pixel colour bucket (foliage, flower, stone, bark/soil, ambient)
-         ├── Per bucket ≥4% of frame: one bounding box + mean centroid over all its pixels
-         └── Normalization to 3x3 directional grid (e.g., center, lower-right)
-         │
-         ▼
-[Compact Spatial Scene Summary (text)]
-         │
-         ▼
-[buildSpatialFusionPrompt — prompt builder only; never sent to Gemma]
-```
-
-### Limitations (Verified in Source)
-
-- Bucket names (e.g., "foliage / vegetation", "mineral / stone surface") are inferred from colour alone, not from object recognition.
-- There is no connected-component labelling: each colour bucket yields at most one "region", even if its pixels are scattered across the frame. The `algorithm` string `'SpatialColorDensity-ConnectedComponents'` and the `instanceId` field do not reflect actual connected components or object instances.
-- The "primary subject" is simply the largest colour bucket, which may be background.
-- The per-region `confidence` value is computed from region area (`0.70 + areaRatio × 0.3`, clamped to 0.65–0.96); it is not a model confidence.
-
-### Key Engineering Decisions
-
-1. **Isolated Module:** Kept strictly behind the `ISegmentationEngine` contract (`src/lib/vision/segmentation/interface.ts`) to avoid coupling production Next.js routes to a specific CV library.
-2. **Low Latency:** Uses simple raster analysis rather than loading a model into memory. Unit tests assert < 100 ms per sample on the development machine.
-3. **Separation from Production Safety:** Production challenge safety lives in `src/lib/safety/challenge.ts` and is actively enforced in `/api/analyze`. The experimental vision module under `src/lib/vision/segmentation/` remains isolated from the production pipeline.
-4. **Integration Gate Status:** Maintained as an **experimental research module**; the core production pipeline continues to rely directly on Gemma 3 4B multimodal vision to avoid unnecessary runtime dependencies. No source file in `src/app` or `src/components` imports this module.
+| Failure Mode | Trigger | System Behavior | Explorer Recovery |
+| :--- | :--- | :--- | :--- |
+| **Ollama Daemon Unreachable** | Port 11434 down / Ollama stopped | Next.js catches connection error; logs diagnostic | Clean error card; prompt to run `ollama serve` |
+| **Model Weight Eviction** | System under memory pressure | Cold load penalty incurred (~4.6s–7.5s) | Progressive loading status indicates warm-up |
+| **Inference Timeout** | Host compute stalled (>180s) | `AbortController` triggers timeout signal | Request aborted; error presented to explorer |
+| **Malformed Model Output** | Token truncation or stray markdown | `attemptJsonRescue()` strips fences & balances brackets | Recovers valid fields or falls back to schema defaults |
+| **Dangerous AI Mission** | Model suggests foraging / steep climbs | Safety gate flags pattern match | Silently substituted with safe observation mission |
+| **Camera Access Denied** | User blocks webcam permission | Browser rejects `getUserMedia` promise | Fallback file uploader appears with specimen presets |
