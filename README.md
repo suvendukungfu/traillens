@@ -62,12 +62,15 @@
 ## 🧭 The Problem & The Contrarian Idea
 
 ### The Problem: The Screen-Retention Trap
+
 Modern mobile applications are designed around dopamine loops, infinite feeds, and persistent screen retention. When hikers take smartphones onto trails, traditional nature apps recreate this behavior:
+
 - Explorers spend minutes reading dense taxonomy cards on a glowing screen while surrounded by living wilderness.
 - Cloud-dependent AI engines fail completely the moment cellular reception drops in backcountry trails.
 - The direct sensory connection to physical nature is broken.
 
 ### The Idea: Local AI as a Tactical Bridge
+
 TrailLens is **not** an AI chatbot, **not** a generic plant identifier, and **not** an engagement dashboard. It is a **Local AI Field-Experiment Engine**:
 
 $$\text{SEE} \longrightarrow \text{GEMMA UNDERSTANDS} \longrightarrow \text{MISSION READY} \longrightarrow \text{PHONE DOWN} \longrightarrow \text{EXPLORE} \longrightarrow \text{RETURN} \longrightarrow \text{REFLECT} \longrightarrow \text{FIELD RECORD}$$
@@ -201,6 +204,7 @@ flowchart LR
 ```
 
 ### Empirical Fixture Benchmark Results (`docs/benchmark-results/mission-quality.json`)
+
 - **Evaluated Fixtures:** 10 deterministic synthetic fixtures (Fixtures A through J).
 - **Average Score:** **85.4 / 100**.
 - **Dimension Pass Rates:**
@@ -307,16 +311,19 @@ triallens/
 ## 🚀 Local Development
 
 ### 1. Prerequisites
+
 - **Node.js** v20+ (Node v25 supported)
 - **Ollama** installed locally ([ollama.com](https://ollama.com))
 
 ### 2. Pull Gemma 3 4B
+
 ```bash
 ollama pull gemma3:4b
 ollama list
 ```
 
 ### 3. Setup & Run
+
 ```bash
 git clone https://github.com/your-username/triallens.git
 cd triallens
@@ -324,9 +331,11 @@ cp .env.example .env.local
 npm install
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000). The navbar displays **LOCAL AI ACTIVE (gemma3:4b)** once the local model is verified.
 
 ### 4. Run Automated Verification
+
 ```bash
 npm test          # Runs 100/100 unit & integration tests
 npm run lint      # Zero ESLint warnings
@@ -338,6 +347,7 @@ npm run build     # Verifies production Next.js bundle
 ## ⚠️ Safety & Leave No Trace Policy
 
 TrailLens enforces strict wilderness conservation and safety principles:
+
 - **Non-Edibility Rule:** **Never** use this or any AI model to verify the safety or edibility of wild plants, mushrooms, or berries. The production safety gate strictly rejects all ingestion and tasting directives.
 - **Wildlife Courtesy:** Maintain respectful distances from all fauna. Touching or cornering animals is forbidden.
 - **Conservation:** Strictly adhere to [Leave No Trace](https://lnt.org/) principles: take only pictures, leave only footprints. Never pick wild flora or disturb delicate forest soils.
@@ -360,6 +370,7 @@ Most AI hackathon submissions create tools that demand more screen time: coding 
 **TrailLens does the exact opposite.**
 
 Built for Week 1 of **Hacktoberfest 2026** (*Touch Grass*) in the **Best Use of Gemma** category, TrailLens demonstrates that artificial intelligence can serve as a tactical catalyst for real-world environmental awareness:
+
 - It uses Google's Gemma 3 4B to decode complex natural morphology in seconds.
 - It immediately tells the explorer to put their phone in their pocket.
 - It proves that cutting-edge AI can encourage human beings to look up, breathe fresh air, and connect deeply with the physical earth.
