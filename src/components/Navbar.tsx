@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Compass, Sparkles, Navigation, Info } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import type { HealthCheckResponse } from '@/types/trail';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [health, setHealth] = useState<HealthCheckResponse | null>(null);
   const [checking, setChecking] = useState<boolean>(true);
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,7 +50,6 @@ export default function Navbar() {
     }
 
     checkHealth();
-    // Re-check every 30 seconds
     const interval = setInterval(checkHealth, 30000);
     return () => {
       isMounted = false;
@@ -56,87 +57,164 @@ export default function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const navLinks = [
-    { href: '/', label: 'Home', icon: Compass },
-    { href: '/explore', label: 'Explore', icon: Sparkles },
-    { href: '/session', label: 'Session', icon: Navigation },
-    { href: '/about', label: 'About', icon: Info },
+    { href: '/explore', label: 'EXPLORE' },
+    { href: '/#missions', label: 'MISSIONS' },
+    { href: '/session', label: 'FIELD JOURNAL' },
+    { href: '/about', label: 'ABOUT' },
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-border-subtle px-4 py-3">
-      <div className="max-w-5xl mx-auto flex items-center justify-between">
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-moss text-white flex items-center justify-center font-bold text-base shadow-xs group-hover:scale-105 transition-transform">
-            🌲
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-base tracking-tight text-foreground leading-none">
-              TrailLens
+    <>
+      <header
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-[#FAF8F5]/90 backdrop-blur-md border-b border-stone-200/80 py-3 shadow-2xs'
+            : 'bg-[#FAF8F5]/70 backdrop-blur-xs border-b border-transparent py-5'
+        }`}
+      >
+        <div className="max-w-310 mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between">
+          {/* Left: Minimal Wordmark */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 group transition-opacity hover:opacity-80"
+          >
+            <span className="text-emerald-800 text-xs tracking-tighter">✦</span>
+            <span className="font-semibold text-xs sm:text-sm tracking-[0.24em] text-foreground uppercase">
+              TRAILLENS
             </span>
-            <span className="text-[11px] text-rock font-medium mt-0.5">
-              Look beyond the screen
-            </span>
-          </div>
-        </Link>
+          </Link>
 
-        {/* Navigation items */}
-        <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main navigation">
-          {navLinks.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  isActive
-                    ? 'bg-moss-light text-moss-dark font-semibold'
-                    : 'text-rock hover:text-foreground hover:bg-surface-muted'
+          {/* Center: Editorial Navigation Links (Desktop) */}
+          <nav
+            className="hidden md:flex items-center gap-8 lg:gap-10"
+            aria-label="Editorial primary navigation"
+          >
+            {navLinks.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`text-[11px] tracking-[0.18em] font-medium transition-colors ${
+                    isActive
+                      ? 'text-moss-dark font-semibold'
+                      : 'text-stone-600 hover:text-foreground'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right: Status & Primary CTA */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Subtle Local AI Status Dot */}
+            <div className="hidden lg:flex items-center gap-2 pr-2">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  checking
+                    ? 'bg-amber-400 animate-pulse'
+                    : health?.status === 'ok'
+                      ? 'bg-emerald-600'
+                      : 'bg-stone-400'
                 }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+                title={
+                  health?.status === 'ok'
+                    ? `Local Gemma 3 4B active on host (${health.configuredModel})`
+                    : 'Local Ollama probing'
+                }
+              />
+              <span className="text-[10px] tracking-wider uppercase text-stone-500 font-medium">
+                {checking
+                  ? 'LOCAL AI'
+                  : health?.status === 'ok'
+                    ? 'GEMMA 3 4B'
+                    : 'OFFLINE MODE'}
+              </span>
+            </div>
 
-        {/* Local AI status pill */}
-        <div className="hidden md:flex items-center gap-2 pl-2 border-l border-border-subtle">
-          {checking ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-surface-muted text-rock">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              Probing Ollama...
-            </span>
-          ) : health?.status === 'ok' ? (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200"
-              title={`Ollama running locally with ${health.configuredModel}`}
+            {/* Primary Action Button (Aurelia hospitality pill reinterpreted) */}
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs font-semibold tracking-wide bg-moss-dark text-white hover:bg-moss transition-all active:scale-95 shadow-xs"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              LOCAL AI ACTIVE ({health.configuredModel})
-            </span>
-          ) : health?.ollamaConnected ? (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200"
-              title={`Ollama connected, but model ${health?.configuredModel} is still downloading`}
+              <span>START EXPLORING</span>
+              <ArrowRight className="w-3.5 h-3.5 hidden sm:inline" />
+            </Link>
+
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle mobile navigation menu"
+              aria-expanded={mobileMenuOpen}
+              className="md:hidden w-9 h-9 rounded-full border border-stone-300 text-stone-700 flex items-center justify-center hover:bg-stone-100 transition-colors"
             >
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              MODEL LOADING ({health?.configuredModel})
-            </span>
-          ) : (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-rose-50 text-rose-800 border border-rose-200"
-              title="Ollama is not reachable on localhost:11434"
-            >
-              <span className="w-2 h-2 rounded-full bg-rose-500" />
-              OLLAMA OFFLINE
-            </span>
-          )}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Editorial Drawer */}
+      {mobileMenuOpen && (
+        <div
+          role="dialog"
+          aria-label="Mobile navigation"
+          className="fixed inset-0 top-16.25 z-30 bg-[#FAF8F5]/98 backdrop-blur-xl md:hidden px-6 py-8 flex flex-col justify-between border-t border-stone-200 animate-in fade-in slide-in-from-top-2"
+        >
+          <div className="space-y-6">
+            <span className="text-[10px] tracking-widest text-stone-400 font-semibold uppercase block">
+              Navigation
+            </span>
+            <nav className="flex flex-col space-y-4">
+              {navLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-2xl font-serif text-foreground hover:text-moss-dark transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="pt-6 border-t border-stone-200/80 space-y-4">
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  health?.status === 'ok' ? 'bg-emerald-600' : 'bg-stone-400'
+                }`}
+              />
+              <span className="text-xs text-stone-600 font-mono">
+                {health?.status === 'ok'
+                  ? 'Gemma 3:4B Local Inference Ready'
+                  : 'Ollama Offline / Standby'}
+              </span>
+            </div>
+            <Link
+              href="/explore"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full py-3.5 px-6 rounded-full font-bold text-xs uppercase tracking-wider bg-moss-dark text-white text-center flex items-center justify-center gap-2 shadow-sm"
+            >
+              <span>Start Exploring</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

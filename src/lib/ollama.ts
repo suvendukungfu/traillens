@@ -99,6 +99,7 @@ export function buildOllamaChatPayload(base64Image: string, model: string) {
       temperature: 0.2, // Low temperature for factual, grounded field guide observations
       top_p: 0.9,
       num_predict: 512, // Bounded headroom for complete FieldMission contract (measured avg 310-330 tokens)
+      num_ctx: 2048, // Compact context window sizing (KV-cache footprint optimized for ~1000 tokens)
     },
   };
 }

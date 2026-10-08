@@ -32,17 +32,20 @@ export default function SessionPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-moss">
-            Field Activity
-          </span>
-          <h1 className="text-2xl font-black tracking-tight text-foreground">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="h-px w-4 bg-stone-400" />
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-stone-500 font-sans">
+              Field Activity
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-foreground">
             Outdoor Session
           </h1>
         </div>
 
         <Link
           href="/explore"
-          className="inline-flex items-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold bg-moss hover:bg-moss-dark text-white shadow-xs transition-colors"
+          className="inline-flex items-center gap-1.5 py-2 px-4 rounded-full text-xs font-semibold bg-moss-dark hover:bg-moss text-white shadow-xs transition-colors"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>Capture Subject</span>

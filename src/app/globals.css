@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fbfaf6;
-  --foreground: #1c261e;
+  --background: #fbf9f5;
+  --foreground: #19211b;
   --surface: #ffffff;
-  --surface-muted: #f3f1ea;
-  --border-subtle: #e5e2d6;
-  --border-strong: #c8c4b2;
-  --moss-primary: #2d5a37;
-  --moss-light: #e8f0e9;
-  --moss-dark: #1e3d25;
-  --bark-accent: #8b5a2b;
+  --surface-muted: #f4f0e6;
+  --surface-stone: #ebe6da;
+  --border-subtle: #e8e3d8;
+  --border-strong: #cfc8b8;
+  --moss-primary: #1c3d2b;
+  --moss-light: #ebf2ec;
+  --moss-dark: #12281c;
+  --bark-accent: #6e4723;
   --lichen-amber: #c88a24;
-  --sun-gold: #e6a817;
-  --rock-gray: #4a554c;
-  --slate-dark: #121913;
+  --brass-accent: #b88b2a;
+  --rock-gray: #555e56;
+  --slate-dark: #0f1511;
+  --font-serif: var(--font-serif, "Cormorant Garamond", "Newsreader", "Playfair Display", "Baskerville", "Georgia", serif);
+  --font-sans: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
 }
 
 @theme inline {
@@ -22,6 +25,7 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-stone: var(--surface-stone);
   --color-border-subtle: var(--border-subtle);
   --color-border-strong: var(--border-strong);
   --color-moss: var(--moss-primary);
@@ -29,7 +33,15 @@
   --color-moss-dark: var(--moss-dark);
   --color-bark: var(--bark-accent);
   --color-lichen: var(--lichen-amber);
+  --color-brass: var(--brass-accent);
   --color-rock: var(--rock-gray);
+  --color-slate-dark: var(--slate-dark);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -40,8 +52,37 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Editorial typography utilities */
+.font-editorial {
+  font-family: var(--font-serif);
+  letter-spacing: -0.015em;
+}
+
 /* Accessible focus ring */
 :focus-visible {
   outline: 2px solid var(--moss-primary);
   outline-offset: 2px;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

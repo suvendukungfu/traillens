@@ -9,6 +9,19 @@ import { evaluateMissionQuality } from '@/lib/mission/quality';
 
 export const dynamic = 'force-dynamic';
 
+// In-memory cache for recent observations to eliminate redundant 40s re-inference on repeat requests
+const observationCache = new Map<string, { result: unknown; timestamp: number }>();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+function computeImageKey(data: string): string {
+  const len = data.length;
+  const s1 = data.slice(0, 40);
+  const s2 = data.slice(Math.floor(len * 0.33), Math.floor(len * 0.33) + 40);
+  const s3 = data.slice(Math.floor(len * 0.66), Math.floor(len * 0.66) + 40);
+  const s4 = data.slice(-40);
+  return `${len}_${s1}_${s2}_${s3}_${s4}`;
+}
+
 export async function POST(req: NextRequest) {
   const requestStartTime = Date.now();
 
@@ -54,6 +67,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Cache hit check: return immediately if identical image was analyzed recently (bypassed in test environment)
+    const cacheKey = computeImageKey(base64Data);
+    if (process.env.NODE_ENV !== 'test') {
+      const cachedEntry = observationCache.get(cacheKey);
+      if (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_TTL_MS) {
+        console.info(`[api/analyze] Serving cached observation for image key (${base64Data.length} bytes, 0ms inference)`);
+        return NextResponse.json(cachedEntry.result, { status: 200 });
+      }
+    }
+
     // Diagnostics (safe: never logs raw base64 or secrets)
     console.info(`[api/analyze] Processing outdoor image (${mimeType}, base64 len: ${base64Data.length})`);
 
@@ -90,6 +113,11 @@ export async function POST(req: NextRequest) {
     console.info(
       `[api/analyze] Analysis complete in ${totalServerDurationMs}ms (model inference: ${result.inferenceDurationMs ?? 0}ms)${telemetryInfo}`
     );
+
+    // Save to observation cache for instant reuse on identical image (bypassed in test environment)
+    if (process.env.NODE_ENV !== 'test') {
+      observationCache.set(cacheKey, { result, timestamp: Date.now() });
+    }
 
     return NextResponse.json(result, { status: 200 });
   } catch (err: unknown) {

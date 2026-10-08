@@ -14,15 +14,15 @@ export default function AboutPage() {
     <div className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 space-y-10">
       {/* Title */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-moss-light text-moss-dark mb-3">
-          <Trees className="w-3.5 h-3.5 text-moss" />
-          <span>Hacktoberfest 2026: Open-Source AI Challenge</span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-moss-light text-moss-dark mb-3">
+          <Trees className="w-3.5 h-3.5 text-moss-dark" />
+          <span>Hacktoberfest 2026 · Theme: Touch Grass</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+        <h1 className="text-3xl sm:text-5xl font-serif font-bold tracking-tight text-foreground">
           About TrailLens
         </h1>
-        <p className="text-base text-rock mt-2 leading-relaxed">
-          Look beyond the screen. An outdoor-first AI companion built around Google Gemma 3 and local Ollama inference.
+        <p className="text-base text-stone-600 mt-2 leading-relaxed font-sans">
+          Look beyond the screen. An offline-first, local AI companion built around Google Gemma 3 and local Ollama inference.
         </p>
       </div>
 
