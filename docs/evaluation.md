@@ -1,9 +1,51 @@
 # TrailLens: Empirical Outdoor Evaluation & Verification Report
 
-> **Project:** TrailLens — Look beyond the screen.  
-> **Evaluation Date:** October 6, 2026  
-> **Target Category:** Hacktoberfest 2026 — Best Use of Gemma (Theme: *Touch Grass*)  
-> **Evaluator:** Lead Architect & Senior AI Engineer  
+> **Project:** TrailLens — Look beyond the screen.
+> **Evaluation Date:** October 6, 2026
+> **Target Category:** Hacktoberfest 2026 — Best Use of Gemma (Theme: *Touch Grass*)
+> **Evaluator:** Lead Architect & Senior AI Engineer
+
+---
+
+## 0. Evaluation Taxonomy & Methodological Boundaries
+
+To ensure absolute scientific and engineering integrity, TrailLens strictly separates evaluation into seven non-overlapping tiers. **These categories are never conflated.**
+
+```mermaid
+flowchart TD
+    subgraph Offline ["Offline & Contractual Verification"]
+        A["Tier A: Functional Correctness<br/>(100/100 Vitest Suites)"]
+        B["Tier B: Contract Validation<br/>(Zod Schema Compilation & Parsers)"]
+        C["Tier C: Safety Validation<br/>(Production Regex Gate Interception)"]
+        D["Tier D: Mission Quality Fixture Evaluation<br/>(10 Deterministic Synthetic Fixtures)"]
+    end
+
+    subgraph Empirical ["Empirical Hardware Measurement"]
+        E["Tier E: Latency Benchmarking<br/>(Cold vs Warm Residency Sweeps)"]
+        F["Tier F: Reproducibility Verification<br/>(Repeated Telemetry Invariance)"]
+    end
+
+    subgraph Wilderness ["Wilderness Boundary"]
+        G["Tier G: Real-World Field Testing<br/>(Physical Human Trail Verification)"]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F -.-> G
+```
+
+| Evaluation Tier | Scope & Implementation | Verification Target | Test Artifact / Evidence |
+| :--- | :--- | :--- | :--- |
+| **A. Functional Correctness** | Unit & lifecycle tests in Vitest | Pure logic, geodesic math, GPS cleanup, context reducer | 100/100 tests passing across 9 test files |
+| **B. Contract Validation** | Zod schemas (`src/lib/validation.ts`) | Type bounds, base64 payload limits, JSON Schema output | `src/lib/validation.test.ts` (18 tests) |
+| **C. Safety Validation** | Production regex gate (`src/lib/safety/challenge.ts`) | Foraging, toxic fungi, steep drops, wildlife harassment | `src/app/api/analyze/route.test.ts` |
+| **D. Mission Quality Fixtures** | 5-dimension rubric (`src/lib/mission/quality.ts`) | Grounding, Specificity, Safety, Executability, Outdoor Value | `docs/benchmark-results/mission-quality.json` (10 fixtures) |
+| **E. Latency Benchmarking** | Local runner (`scripts/benchmark-gemma.mjs`) | Cold load vs warm resident latency, token speeds | `docs/benchmark-results/gemma-latency.json` |
+| **F. Reproducibility Verification** | Repeat runs under varying host conditions | Directional consistency of memory residency & token bounds | Oct 6 vs Oct 7 comparative telemetry table |
+| **G. Real-World Field Testing** | Human trail walks across varied weather and terrain | Pedagogical value and sensory immersion outdoors | Acknowledged boundary; ongoing physical study |
 
 ---
 
