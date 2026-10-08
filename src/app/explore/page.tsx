@@ -49,8 +49,13 @@ export default function ExplorePage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        const fieldDetails = errorData.details
+          ? Object.values(errorData.details).flat().join('. ')
+          : '';
         throw new Error(
-          errorData.error || `Server responded with status ${response.status}`
+          fieldDetails
+            ? `${errorData.error || 'Validation failed'}: ${fieldDetails}`
+            : errorData.error || `Server responded with status ${response.status}`
         );
       }
 

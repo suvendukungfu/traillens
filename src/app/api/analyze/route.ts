@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
     // 2. Validate payload schema
     const parseResult = analyzeRequestSchema.safeParse(body);
     if (!parseResult.success) {
+      console.warn(
+        '[api/analyze] Validation failed:',
+        JSON.stringify(parseResult.error.flatten().fieldErrors)
+      );
       return NextResponse.json(
         {
           error: 'Validation failed',

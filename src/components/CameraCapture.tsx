@@ -109,45 +109,72 @@ export default function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureP
     };
   }, [cameraSession, stopStream]);
 
+const SAMPLE_OBSERVATIONS = [
+  { id: 'oak_leaf', label: 'Oak Leaf', path: '/samples/oak_leaf_optimized.jpg', emoji: '🍃' },
+  { id: 'tree_bark', label: 'Tree Bark', path: '/samples/tree_bark_optimized.jpg', emoji: '🌲' },
+  { id: 'river_stones', label: 'River Stones', path: '/samples/river_stones_optimized.jpg', emoji: '🪨' },
+  { id: 'wildflower', label: 'Wildflower', path: '/samples/wildflower_optimized.jpg', emoji: '🌼' },
+];
+
   /**
-   * Compresses image using HTML5 Canvas to 1024px max dimension at 0.82 JPEG quality.
+   * Compresses image using HTML5 Canvas to 1024px max dimension at 0.80 JPEG quality.
    * Drastically reduces local memory usage and prevents Ollama OOM while preserving field details.
    */
   const compressImage = (source: HTMLVideoElement | HTMLImageElement): string => {
-    const canvas = document.createElement('canvas');
-    let width = 'videoWidth' in source ? source.videoWidth : source.naturalWidth;
-    let height = 'videoHeight' in source ? source.videoHeight : source.naturalHeight;
+    const width = 'videoWidth' in source ? source.videoWidth : source.naturalWidth;
+    const height = 'videoHeight' in source ? source.videoHeight : source.naturalHeight;
 
+    if (!width || !height || width <= 0 || height <= 0) {
+      throw new Error('Image source has invalid dimensions.');
+    }
+
+    const canvas = document.createElement('canvas');
     const maxDim = 640;
+    let targetWidth = width;
+    let targetHeight = height;
+
     if (width > maxDim || height > maxDim) {
       if (width > height) {
-        height = Math.round((height * maxDim) / width);
-        width = maxDim;
+        targetHeight = Math.round((height * maxDim) / width);
+        targetWidth = maxDim;
       } else {
-        width = Math.round((width * maxDim) / height);
-        height = maxDim;
+        targetWidth = Math.round((width * maxDim) / height);
+        targetHeight = maxDim;
       }
     }
 
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
     const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(source, 0, 0, width, height);
+    if (!ctx) {
+      throw new Error('Could not initialize canvas context.');
     }
 
-    return canvas.toDataURL('image/jpeg', 0.80);
+    ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+
+    if (!dataUrl || dataUrl.length < 100) {
+      throw new Error('Compressed image payload too small.');
+    }
+
+    return dataUrl;
   };
 
   // Capture current frame from video feed
   const handleSnap = () => {
     if (!videoRef.current) return;
+    if (videoRef.current.videoWidth <= 0 || videoRef.current.videoHeight <= 0) {
+      setCameraError('Camera video stream is still initializing. Please wait a moment and tap capture again.');
+      return;
+    }
+
     try {
       const compressedData = compressImage(videoRef.current);
       setCapturedImage(compressedData);
+      setCameraError(null);
       stopStream();
     } catch {
-      setCameraError('Failed to capture frame from video feed.');
+      setCameraError('Failed to capture frame from video feed. Please try again or upload a photo.');
     }
   };
 
@@ -162,17 +189,51 @@ export default function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureP
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Reset value so re-selecting same file triggers event
+    e.target.value = '';
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
-        const compressed = compressImage(img);
-        setCapturedImage(compressed);
-        stopStream();
+        try {
+          const compressed = compressImage(img);
+          setCapturedImage(compressed);
+          setCameraError(null);
+          stopStream();
+        } catch {
+          setCameraError('Failed to process uploaded photo. Please try a different image.');
+        }
+      };
+      img.onerror = () => {
+        setCameraError('Could not decode the selected image file. Please use a standard JPG, PNG, or WebP photo.');
       };
       img.src = event.target?.result as string;
     };
+    reader.onerror = () => {
+      setCameraError('Failed to read photo from your device.');
+    };
     reader.readAsDataURL(file);
+  };
+
+  // Load bundled test sample observation
+  const handleSelectSample = (samplePath: string) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const compressed = compressImage(img);
+        setCapturedImage(compressed);
+        setCameraError(null);
+        stopStream();
+      } catch {
+        setCameraError('Failed to process sample image.');
+      }
+    };
+    img.onerror = () => {
+      setCameraError('Could not load sample observation.');
+    };
+    img.src = samplePath;
   };
 
   return (
@@ -289,6 +350,30 @@ export default function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureP
               <Camera className="w-4 h-4" />
               <span>Capture Observation</span>
             </button>
+          </div>
+        )}
+
+        {/* Quick Test Sample Selector */}
+        {!capturedImage && (
+          <div className="pt-2 border-t border-border-subtle/70">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                Or test with a sample observation:
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {SAMPLE_OBSERVATIONS.map((sample) => (
+                <button
+                  key={sample.id}
+                  type="button"
+                  onClick={() => handleSelectSample(sample.path)}
+                  className="py-2 px-2.5 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-stone-800 flex items-center justify-center gap-1.5 transition-colors border border-stone-200/80 shadow-xs"
+                >
+                  <span className="text-sm">{sample.emoji}</span>
+                  <span className="truncate">{sample.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
