@@ -109,6 +109,7 @@ cp .env.example .env.local
 ```
 
 Default configuration in `.env.local`:
+
 ```env
 OLLAMA_BASE_URL=http://127.0.0.1:11434
 OLLAMA_MODEL=gemma3:4b
